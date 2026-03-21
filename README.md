@@ -275,16 +275,6 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 
 ---
 
-## 🏆 Recognition Potential
-
-This project is designed to be submitted to:
-- Smart India Hackathon (SIH)
-- NASSCOM Foundation Tech for Society
-- iHub — IIT Hyderabad Agri-AI Challenge
-- ICRISAT Innovation Challenge
-- Telangana State Innovation Cell
-
----
 
 ## 🤝 Contributing
 
