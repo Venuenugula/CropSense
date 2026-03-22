@@ -6,13 +6,10 @@ from telegram.ext import (
 )
 from telegram import BotCommand
 from bot.handlers import (
-    start,
-    set_telugu,
-    set_english,
-    help_command,
-    photo_handler,
-    location_handler,
-    text_handler,
+    start, set_telugu, set_english,
+    help_command, photo_handler,
+    location_handler, text_handler,
+    voice_handler,               # add this
 )
 from dotenv import load_dotenv
 import os, logging
@@ -60,6 +57,7 @@ def main():
 
     # Messages
     app.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
+    app.add_handler(MessageHandler(filters.VOICE, voice_handler))
     app.add_handler(MessageHandler(filters.LOCATION, location_handler))
     app.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND, text_handler

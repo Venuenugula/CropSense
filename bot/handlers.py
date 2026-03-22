@@ -1,8 +1,9 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot.pipeline import run_pipeline
+from utils.voice import transcribe_audio, text_to_speech, detect_language_from_audio
 import re
-
+import io
 # ─── User state store ────────────────────────────────────────────────────────
 user_state = {}
 
@@ -169,6 +170,103 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lat, lon = resolve_location(text)
     await _run_and_reply(update, context, uid, state, lat, lon, lang,
                          location_label=text)
+async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handle voice messages from farmers."""
+    uid   = update.effective_user.id
+    state = user_state.get(uid, {})
+    lang  = state.get("lang", "telugu")
+
+    # Download voice message
+    voice     = update.message.voice
+    file      = await context.bot.get_file(voice.file_id)
+    audio_bytes = await file.download_as_bytearray()
+
+    processing_msg = await update.message.reply_text(
+        "🎤 మీ గొంతు వింటున్నాం... / Listening...\n"
+        "⏳ కొంచెం వేచి ఉండండి / Please wait..."
+    )
+
+    try:
+        # Step 1 — Transcribe voice to text
+        whisper_lang = "te" if lang == "telugu" else "en"
+        transcribed  = transcribe_audio(bytes(audio_bytes), language=whisper_lang)
+
+        if not transcribed:
+            await processing_msg.delete()
+            await update.message.reply_text(
+                "❌ గొంతు అర్థం కాలేదు. దయచేసి మళ్ళీ మాట్లాడండి.\n"
+                "Could not understand. Please speak again."
+            )
+            return
+
+        await update.message.reply_text(
+            f"📝 మీరు చెప్పింది / You said:\n_{transcribed}_",
+            parse_mode="Markdown"
+        )
+
+        # Step 2 — Detect language from transcription
+        detected_lang = detect_language_from_audio(transcribed)
+        if detected_lang != lang:
+            user_state[uid]["lang"] = detected_lang
+            lang = detected_lang
+
+        # Step 3 — Check if farmer is asking about disease
+        # (has photo in state → treat voice as location fallback)
+        if "img_bytes" in state:
+            from forecast.weather import resolve_location
+            lat, lon = resolve_location(transcribed)
+            await processing_msg.delete()
+            await _run_and_reply(
+                update, context, uid, state,
+                lat, lon, lang,
+                location_label=transcribed
+            )
+            return
+
+        # Step 4 — General farming question via Gemini
+        await processing_msg.delete()
+        processing_msg = await update.message.reply_text(
+            "🤔 సమాధానం తయారు చేస్తున్నాం... / Preparing answer..."
+        )
+
+        from utils.gemini import call_gemini
+        from utils.language import get_system_prompt
+
+        system = get_system_prompt(lang)
+        prompt = f"""
+{system}
+
+ఒక రైతు ఈ ప్రశ్న అడిగాడు / A farmer asked this question:
+"{transcribed}"
+
+వ్యవసాయ నిపుణుడిగా సులభంగా సమాధానం ఇవ్వండి.
+Answer as an agricultural expert in simple {lang} language.
+Keep the answer concise — maximum 5-6 sentences.
+"""
+        response = call_gemini(prompt)
+        await processing_msg.delete()
+
+        # Step 5 — Send text response
+        response_clean = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
+        response_clean = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response_clean)
+        await update.message.reply_text(response_clean, parse_mode="HTML")
+
+        # Step 6 — Send voice response back
+        await update.message.reply_text(
+            "🔊 వినండి / Listen 👇"
+        )
+        audio_response = text_to_speech(response, language=whisper_lang)
+        await update.message.reply_voice(
+            voice=io.BytesIO(audio_response),
+            caption="🌱 Rythu Mitra"
+        )
+
+    except Exception as e:
+        await processing_msg.delete()
+        await update.message.reply_text(
+            f"❌ లోపం వచ్చింది / Error: <code>{str(e)[:100]}</code>",
+            parse_mode="HTML"
+        )
 
 # ─── Shared pipeline runner ───────────────────────────────────────────────────
 async def _run_and_reply(
