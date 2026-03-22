@@ -194,7 +194,9 @@ async def _run_and_reply(
         # Send main response — use HTML parse mode to avoid Markdown issues
         response = result["response"]
         # Convert Markdown bold to HTML bold for safety
-        response = re.sub(r'\*(.+?)\*', r'<b>\1</b>', response)
+        response = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
+        response = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response)
+        response = response.replace('---', '──────────')
         await update.message.reply_text(response, parse_mode="HTML")
 
         # Send top predictions
