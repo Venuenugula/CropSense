@@ -13,3 +13,4 @@ data/
 model/crop_disease.onnx
 model/crop_disease_fp32.onnx
 model/best_model.pt
+model/crop_disease.onnx.data
