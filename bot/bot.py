@@ -26,6 +26,15 @@ logger = logging.getLogger(__name__)
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
 
+async def error_handler(update, context):
+    """Handle errors gracefully — suppress network blips, log real errors."""
+    import telegram
+    if isinstance(context.error, telegram.error.NetworkError):
+        logger.warning(f"Network blip (auto-recovering): {context.error}")
+    else:
+        logger.error(f"Unhandled error: {context.error}", exc_info=context.error)
+
+
 async def post_init(application):
     await application.bot.set_my_commands([
         BotCommand("start",      "మొదలుపెట్టండి / Start"),
@@ -55,6 +64,7 @@ def main():
         .build()
     )
 
+    # Commands
     application.add_handler(CommandHandler("start",      start))
     application.add_handler(CommandHandler("telugu",     set_telugu))
     application.add_handler(CommandHandler("english",    set_english))
@@ -64,6 +74,7 @@ def main():
     application.add_handler(CommandHandler("schemes",    schemes_command))
     application.add_handler(CommandHandler("pathakalu",  schemes_command))
 
+    # Messages
     application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
     application.add_handler(MessageHandler(filters.VOICE,    voice_handler))
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
@@ -72,7 +83,10 @@ def main():
         route_text
     ))
 
-    print("✅ Rythu Mitra is running!\n")
+    # Error handler
+    application.add_error_handler(error_handler)
+
+    print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
     application.run_polling(drop_pending_updates=True)
 
 

@@ -33,12 +33,32 @@ def html(text: str) -> str:
     text = text.replace('---', '──────────')
     return text
 
+async def send_long_message(message, text: str, parse_mode: str = "HTML"):
+    """Split and send messages that exceed Telegram's 4096 char limit."""
+    MAX_LEN = 4000
+    if len(text) <= MAX_LEN:
+        await message.reply_text(text, parse_mode=parse_mode)
+        return
+
+    # Split at paragraph boundaries
+    parts   = []
+    current = ""
+    for paragraph in text.split("\n\n"):
+        if len(current) + len(paragraph) + 2 <= MAX_LEN:
+            current += paragraph + "\n\n"
+        else:
+            if current:
+                parts.append(current.strip())
+            current = paragraph + "\n\n"
+    if current:
+        parts.append(current.strip())
+
+    for part in parts:
+        await message.reply_text(part, parse_mode=parse_mode)
+
 # ─── Central text router ──────────────────────────────────────────────────────
 async def route_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """
-    Route all text messages to the correct handler based on active state.
-    Priority: fertilizer → schemes → general text handler
-    """
+    """Route all text messages based on active conversation state."""
     uid = update.effective_user.id
     if uid in fertilizer_state:
         await fertilizer_conversation(update, context)
@@ -146,7 +166,7 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """
     Handles voice in ALL contexts:
-    - During fertilizer/scheme conversation → transcribe + route to correct handler
+    - During fertilizer/scheme conversation → transcribe + route correctly
     - After photo → treat as district name
     - Otherwise → answer farming question with text + audio
     """
@@ -176,7 +196,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             parse_mode="HTML"
         )
 
-        # ── Route to active conversation if any ──────────────────────────
+        # Route to active conversation
         if uid in fertilizer_state or uid in scheme_state:
             update.message.text = transcribed
             await processing_msg.delete()
@@ -186,7 +206,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await schemes_conversation(update, context)
             return
 
-        # ── If photo is waiting → treat voice as location ─────────────────
+        # If photo is waiting → treat voice as location
         if "img_bytes" in state:
             from forecast.weather import resolve_location
             lat, lon = resolve_location(transcribed)
@@ -197,7 +217,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        # ── General farming Q&A ───────────────────────────────────────────
+        # General farming Q&A
         from utils.gemini import call_gemini
         from utils.language import get_system_prompt
 
@@ -213,9 +233,9 @@ Answer in simple {lang} language. Max 4-5 sentences. Conversational tone.
         response = call_gemini(prompt)
         await processing_msg.delete()
 
-        await update.message.reply_text(
-            f"🌱 <b>సమాధానం / Answer:</b>\n\n{html(response)}",
-            parse_mode="HTML"
+        await send_long_message(
+            update.message,
+            f"🌱 <b>సమాధానం / Answer:</b>\n\n{html(response)}"
         )
         audio_out = await text_to_speech_async(response, language=whisper_lang)
         await update.message.reply_voice(
@@ -325,7 +345,7 @@ async def fertilizer_conversation(update: Update, context: ContextTypes.DEFAULT_
             processing = await update.message.reply_text("🔍 వెతుకుతున్నాం... / Searching...")
             response   = handle_unknown_product(text, lang)
             await processing.delete()
-            await update.message.reply_text(html(response), parse_mode="HTML")
+            await send_long_message(update.message, html(response))
             try:
                 wlang = "te" if lang == "telugu" else "en"
                 audio = await text_to_speech_async(response, language=wlang)
@@ -403,11 +423,14 @@ async def fertilizer_conversation(update: Update, context: ContextTypes.DEFAULT_
             lang=lang,
         )
         await processing.delete()
-        await update.message.reply_text(html(response), parse_mode="HTML")
+        await send_long_message(update.message, html(response))
         try:
             wlang = "te" if lang == "telugu" else "en"
             audio = await text_to_speech_async(response, language=wlang)
-            await update.message.reply_voice(voice=io.BytesIO(audio), caption="💊 Rythu Mitra — Fertilizer Guide")
+            await update.message.reply_voice(
+                voice=io.BytesIO(audio),
+                caption="💊 Rythu Mitra — Fertilizer Guide"
+            )
         except Exception:
             pass
         fertilizer_state.pop(uid, None)
@@ -472,7 +495,7 @@ async def schemes_conversation(update: Update, context: ContextTypes.DEFAULT_TYP
         )
 
         await processing.delete()
-        await update.message.reply_text(html(response), parse_mode="HTML")
+        await send_long_message(update.message, html(response))
 
         try:
             wlang = "te" if lang == "telugu" else "en"
@@ -510,8 +533,8 @@ async def _run_and_reply(
         loc_name     = result["location_name"]
         whisper_lang = "te" if lang == "telugu" else "en"
 
-        # Text report
-        await update.message.reply_text(html(response), parse_mode="HTML")
+        # Disease report text
+        await send_long_message(update.message, html(response))
 
         # Predictions + risk summary
         conf_text = "📊 <b>Top Predictions:</b>\n"
@@ -520,7 +543,8 @@ async def _run_and_reply(
             conf_text += f"{i}. {disease} — {p['confidence']}%\n"
         conf_text += (
             f"\n📍 <b>Location:</b> {loc_name}\n"
-            f"⛅ <b>Spread Risk:</b> {risk['risk_level']} (score: {risk['risk_score']})"
+            f"⛅ <b>Spread Risk:</b> {risk['risk_level']} "
+            f"(score: {risk['risk_score']})"
         )
         await update.message.reply_text(conf_text, parse_mode="HTML")
 
