@@ -7,9 +7,10 @@ from telegram.ext import (
 from telegram import BotCommand
 from bot.handlers import (
     start, set_telugu, set_english, help_command,
-    photo_handler, location_handler, text_handler,
-    voice_handler, fertilizer_command,
-    fertilizer_conversation, fertilizer_state,
+    photo_handler, location_handler, voice_handler, text_handler,
+    fertilizer_command, fertilizer_conversation, fertilizer_state,
+    schemes_command, schemes_conversation, scheme_state,
+    route_text,
 )
 from dotenv import load_dotenv
 import os, logging
@@ -24,17 +25,20 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
+
 async def post_init(application):
-    """Set bot command menu shown to users."""
     await application.bot.set_my_commands([
-        BotCommand("start",       "మొదలుపెట్టండి / Start"),
-        BotCommand("telugu",      "తెలుగులో మాట్లాడండి"),
-        BotCommand("english",     "Switch to English"),
-        BotCommand("fertilizer",  "💊 ఎరువు / మందు సలహా"),
-        BotCommand("mandu",       "💊 మందు వివరాలు"),
-        BotCommand("help",        "సహాయం / Help"),
+        BotCommand("start",      "మొదలుపెట్టండి / Start"),
+        BotCommand("telugu",     "తెలుగులో మాట్లాడండి"),
+        BotCommand("english",    "Switch to English"),
+        BotCommand("fertilizer", "💊 ఎరువు / మందు సలహా"),
+        BotCommand("mandu",      "💊 మందు వివరాలు"),
+        BotCommand("schemes",    "🏛️ ప్రభుత్వ పథకాలు"),
+        BotCommand("pathakalu",  "🏛️ పథకాల సమాచారం"),
+        BotCommand("help",       "సహాయం / Help"),
     ])
     logger.info("Bot commands set successfully.")
+
 
 def main():
     if not TOKEN:
@@ -51,27 +55,26 @@ def main():
         .build()
     )
 
-    # Commands
-    application.add_handler(CommandHandler("start",       start))
-    application.add_handler(CommandHandler("telugu",      set_telugu))
-    application.add_handler(CommandHandler("english",     set_english))
-    application.add_handler(CommandHandler("help",        help_command))
-    application.add_handler(CommandHandler("fertilizer",  fertilizer_command))
-    application.add_handler(CommandHandler("mandu",       fertilizer_command))
+    application.add_handler(CommandHandler("start",      start))
+    application.add_handler(CommandHandler("telugu",     set_telugu))
+    application.add_handler(CommandHandler("english",    set_english))
+    application.add_handler(CommandHandler("help",       help_command))
+    application.add_handler(CommandHandler("fertilizer", fertilizer_command))
+    application.add_handler(CommandHandler("mandu",      fertilizer_command))
+    application.add_handler(CommandHandler("schemes",    schemes_command))
+    application.add_handler(CommandHandler("pathakalu",  schemes_command))
 
-    # Messages
     application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
     application.add_handler(MessageHandler(filters.VOICE,    voice_handler))
     application.add_handler(MessageHandler(filters.LOCATION, location_handler))
     application.add_handler(MessageHandler(
         filters.TEXT & ~filters.COMMAND,
-        lambda u, c: fertilizer_conversation(u, c)
-        if u.effective_user.id in fertilizer_state
-        else text_handler(u, c)
+        route_text
     ))
 
-    print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
+    print("✅ Rythu Mitra is running!\n")
     application.run_polling(drop_pending_updates=True)
+
 
 if __name__ == "__main__":
     main()
