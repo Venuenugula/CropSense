@@ -187,3 +187,109 @@ def get_risk_distribution() -> dict:
         return {r[0]: r[1] for r in rows}
     except Exception:
         return {}
+def get_subscriber_ids() -> list:
+    """Get all unique user IDs who have used the bot."""
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT DISTINCT user_id FROM detections
+                    WHERE user_id > 0
+                """)
+                return [row[0] for row in cur.fetchall()]
+    except Exception:
+        return []
+
+def get_outbreak_alerts() -> list:
+    """
+    Find diseases detected 3+ times in same district
+    within last 7 days — trigger community alert.
+    """
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT disease_key, location_name,
+                           COUNT(*) as count,
+                           MAX(created_at) as latest
+                    FROM detections
+                    WHERE is_healthy = FALSE
+                      AND created_at >= NOW() - INTERVAL '7 days'
+                    GROUP BY disease_key, location_name
+                    HAVING COUNT(*) >= 3
+                    ORDER BY count DESC
+                """)
+                rows = cur.fetchall()
+        return [
+            {
+                "disease_key":   r[0],
+                "location_name": r[1],
+                "count":         r[2],
+                "latest":        r[3].strftime("%Y-%m-%d %H:%M"),
+            }
+            for r in rows
+        ]
+    except Exception:
+        return []
+
+def get_district_subscribers(district_name: str) -> list:
+    """Get user IDs who have scanned crops in a specific district."""
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    SELECT DISTINCT user_id FROM detections
+                    WHERE LOWER(location_name) LIKE LOWER(%s)
+                      AND user_id > 0
+                """, (f"%{district_name.split(',')[0].strip()}%",))
+                return [row[0] for row in cur.fetchall()]
+    except Exception:
+        return []
+
+def mark_alert_sent(disease_key: str, location_name: str):
+    """Track which alerts have been sent to avoid duplicates."""
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS sent_alerts (
+                        id SERIAL PRIMARY KEY,
+                        disease_key TEXT,
+                        location_name TEXT,
+                        sent_at TIMESTAMP DEFAULT NOW(),
+                        UNIQUE(disease_key, location_name)
+                    )
+                """)
+                cur.execute("""
+                    INSERT INTO sent_alerts (disease_key, location_name)
+                    VALUES (%s, %s)
+                    ON CONFLICT (disease_key, location_name) DO UPDATE
+                    SET sent_at = NOW()
+                """, (disease_key, location_name))
+            conn.commit()
+    except Exception as e:
+        print(f"Alert tracking error: {e}")
+
+def was_alert_sent_recently(disease_key: str, location_name: str) -> bool:
+    """Check if alert was sent in last 24 hours."""
+    try:
+        with get_conn() as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    CREATE TABLE IF NOT EXISTS sent_alerts (
+                        id SERIAL PRIMARY KEY,
+                        disease_key TEXT,
+                        location_name TEXT,
+                        sent_at TIMESTAMP DEFAULT NOW(),
+                        UNIQUE(disease_key, location_name)
+                    )
+                """)
+                cur.execute("""
+                    SELECT COUNT(*) FROM sent_alerts
+                    WHERE disease_key = %s
+                      AND location_name = %s
+                      AND sent_at >= NOW() - INTERVAL '24 hours'
+                """, (disease_key, location_name))
+                return cur.fetchone()[0] > 0
+    except Exception:
+        return False

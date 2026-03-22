@@ -1,4 +1,9 @@
 from email.mime import application
+from sched import scheduler
+
+from tqdm import asyncio
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from utils.alert_manager import send_community_alerts
 
 from telegram.ext import (
     ApplicationBuilder,
@@ -12,7 +17,7 @@ from bot.handlers import (
     photo_handler, location_handler, voice_handler, text_handler,
     fertilizer_command, fertilizer_conversation, fertilizer_state,
     schemes_command, schemes_conversation, scheme_state,
-    route_text,calendar_command, calendar_conversation, calendar_state,
+    route_text,calendar_command, calendar_conversation, calendar_state,alerts_command
 )
 from dotenv import load_dotenv
 import os, logging
@@ -48,6 +53,7 @@ async def post_init(application):
         BotCommand("pathakalu",  "🏛️ పథకాల సమాచారం"),
         BotCommand("calendar",  "📅 పంట క్యాలెండర్"),
         BotCommand("panchanga", "📅 నెల వారీ షెడ్యూల్"),
+        BotCommand("alerts", "🚨 వ్యాధి వ్యాప్తి నివేదిక"),
         BotCommand("help",       "సహాయం / Help"),
     ])
     logger.info("Bot commands set successfully.")
@@ -79,6 +85,7 @@ def main():
     application.add_handler(CommandHandler("pathakalu",  schemes_command))
     application.add_handler(CommandHandler("calendar",  calendar_command))
     application.add_handler(CommandHandler("panchanga", calendar_command))
+    application.add_handler(CommandHandler("alerts", alerts_command))
 
     # Messages
     application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
@@ -91,6 +98,18 @@ def main():
 
     # Error handler
     application.add_error_handler(error_handler)
+    # Scheduler — check for outbreaks every 6 hours
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(
+    lambda: asyncio.create_task(
+        send_community_alerts(application.bot)
+    ),
+    trigger="interval",
+    hours=6,
+    id="community_alerts"
+)
+    scheduler.start()
+    print("⏰ Community alert scheduler started (every 6 hours)\n")
 
     print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
     application.run_polling(drop_pending_updates=True)

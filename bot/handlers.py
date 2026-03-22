@@ -3,6 +3,8 @@ from telegram.ext import ContextTypes
 from bot.pipeline import run_pipeline
 from utils.voice import transcribe_audio, text_to_speech_async, detect_language_from_audio
 from utils.crop_calendar import find_crop, generate_calendar_response, get_available_crops
+from utils.alert_manager import send_community_alerts, build_alert_message
+from db.models import get_outbreak_alerts
 from utils.fertilizer_advisor import (
     find_product, generate_fertilizer_response, handle_unknown_product
 )
@@ -289,7 +291,33 @@ async def calendar_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 resize_keyboard=True
             )
         )
+async def alerts_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Show current disease outbreaks in Telangana."""
+    uid  = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
 
+    alerts = get_outbreak_alerts()
+
+    if not alerts:
+        msg = (
+            "✅ ప్రస్తుతం మీ ప్రాంతంలో వ్యాధి వ్యాప్తి నివేదికలు లేవు.\n"
+            "Your area is clear — no disease outbreaks reported."
+            if lang == "telugu" else
+            "✅ No disease outbreaks reported in your area currently.\n"
+            "Keep monitoring your crops weekly."
+        )
+        await update.message.reply_text(msg)
+        return
+
+    if lang == "telugu":
+        response = "🚨 <b>ప్రస్తుత వ్యాధి వ్యాప్తి నివేదిక</b>\n\n"
+    else:
+        response = "🚨 <b>Current Disease Outbreak Report</b>\n\n"
+
+    for alert in alerts[:5]:
+        response += build_alert_message(alert, lang) + "\n\n"
+
+    await send_long_message(update.message, response)
 async def calendar_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid   = update.effective_user.id
     state = calendar_state.get(uid, {})
