@@ -184,11 +184,12 @@ async def _run_and_reply(
 
     try:
         result = run_pipeline(
-            image_bytes=state["img_bytes"],
-            lat=lat,
-            lon=lon,
-            lang=lang,
-        )
+        image_bytes=state["img_bytes"],
+        lat=lat,
+        lon=lon,
+        lang=lang,
+        user_id=uid,        # add this line
+    )
         await processing_msg.delete()
 
         # Send main response — use HTML parse mode to avoid Markdown issues
