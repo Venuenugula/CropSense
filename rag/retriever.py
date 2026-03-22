@@ -49,7 +49,7 @@ def format_for_llm(disease_info: dict) -> str:
     if not disease_info:
         return "No information found for this disease."
     return f"""
-Disease: {disease_info.get('disease_key', 'Unknown')}
+Disease: {disease_info.get('telugu_name', '')} ({disease_info.get('crop', '')})
 Crop: {disease_info.get('crop', '')}
 Severity: {disease_info.get('severity', '')}
 Symptoms: {', '.join(disease_info.get('symptoms', []))}
