@@ -1,0 +1,292 @@
+{
+  "Apple___Apple_scab": {
+    "telugu_name": "యాపిల్ స్కాబ్",
+    "crop": "Apple",
+    "description": "Fungal disease caused by Venturia inaequalis. Dark, scaly lesions on leaves and fruit.",
+    "symptoms": ["Olive-green to brown spots on leaves", "Dark scabby lesions on fruit", "Premature leaf drop", "Cracked and deformed fruits"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Carbendazim 50% WP @ 1g/L water", "Remove and destroy infected leaves", "Apply copper-based fungicide before rain"],
+    "prevention": ["Plant resistant varieties", "Ensure good air circulation", "Avoid overhead irrigation", "Apply dormant sprays in early spring"],
+    "severity": "High",
+    "spread_conditions": ["Cool and wet weather", "High humidity above 70%", "Temperatures 13-24°C"]
+  },
+  "Apple___Black_rot": {
+    "telugu_name": "యాపిల్ బ్లాక్ రాట్",
+    "crop": "Apple",
+    "description": "Fungal disease caused by Botryosphaeria obtusa. Causes fruit rot and leaf spots.",
+    "symptoms": ["Purple spots on leaves", "Brown to black rotting fruit", "Cankers on branches", "Mummified fruits on tree"],
+    "treatment": ["Apply Captan 50% WP @ 2g/L water", "Spray Thiophanate-methyl @ 1g/L water", "Prune and destroy infected branches", "Apply fungicide every 10-14 days"],
+    "prevention": ["Remove mummified fruits", "Prune dead wood regularly", "Avoid wounding trees", "Maintain tree vigor with proper fertilization"],
+    "severity": "High",
+    "spread_conditions": ["Warm and wet weather", "Temperatures 20-30°C", "Wounds or insect damage on fruit"]
+  },
+  "Apple___Cedar_apple_rust": {
+    "telugu_name": "యాపిల్ రస్ట్",
+    "crop": "Apple",
+    "description": "Fungal disease requiring both apple and cedar/juniper trees to complete lifecycle.",
+    "symptoms": ["Bright orange-yellow spots on upper leaf surface", "Tube-like structures on leaf undersides", "Premature defoliation", "Distorted fruit"],
+    "treatment": ["Spray Myclobutanil @ 0.5ml/L water", "Apply Propiconazole @ 1ml/L water", "Begin sprays at pink bud stage", "Repeat every 7-10 days during wet weather"],
+    "prevention": ["Remove nearby cedar and juniper trees", "Plant rust-resistant apple varieties", "Apply protective fungicides in spring"],
+    "severity": "Medium",
+    "spread_conditions": ["Rainy spring weather", "Presence of cedar/juniper trees nearby", "Temperatures 10-24°C"]
+  },
+  "Apple___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన యాపిల్",
+    "crop": "Apple",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Continue regular monitoring", "Maintain good orchard hygiene", "Follow balanced fertilization schedule", "Ensure adequate irrigation"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot": {
+    "telugu_name": "మొక్కజొన్న గ్రే లీఫ్ స్పాట్",
+    "crop": "Corn / Maize",
+    "description": "Fungal disease caused by Cercospora zeae-maydis. One of the most yield-limiting diseases of maize.",
+    "symptoms": ["Rectangular gray to tan lesions parallel to leaf veins", "Lesions surrounded by yellow halo", "Leaves turn brown and die", "Reduced grain fill"],
+    "treatment": ["Spray Azoxystrobin @ 1ml/L water", "Apply Propiconazole 25% EC @ 1ml/L water", "Use Trifloxystrobin + Propiconazole combination", "Apply at early disease onset"],
+    "prevention": ["Use resistant hybrid varieties", "Rotate crops — avoid continuous maize", "Reduce plant density for air circulation", "Manage crop residue after harvest"],
+    "severity": "High",
+    "spread_conditions": ["High humidity above 90%", "Warm temperatures 25-30°C", "Extended leaf wetness periods", "Dense plant canopy"]
+  },
+  "Corn_(maize)___Common_rust_": {
+    "telugu_name": "మొక్కజొన్న తుప్పు వ్యాధి",
+    "crop": "Corn / Maize",
+    "description": "Fungal disease caused by Puccinia sorghi. Visible as brick-red pustules on leaves.",
+    "symptoms": ["Small circular to elongated brick-red pustules on both leaf surfaces", "Pustules turn dark brown-black as they mature", "Severe infection causes yellowing and leaf death"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Propiconazole 25% EC @ 1ml/L water", "Use Azoxystrobin if severe", "Begin treatment at first sign of pustules"],
+    "prevention": ["Plant rust-resistant varieties", "Early planting to avoid peak rust season", "Monitor fields regularly from 4-week stage"],
+    "severity": "Medium",
+    "spread_conditions": ["Cool temperatures 16-23°C", "High humidity", "Wind-borne spore dispersal", "Cloudy weather with dew"]
+  },
+  "Corn_(maize)___Northern_Leaf_Blight": {
+    "telugu_name": "మొక్కజొన్న నార్తర్న్ లీఫ్ బ్లైట్",
+    "crop": "Corn / Maize",
+    "description": "Fungal disease caused by Exserohilum turcicum. Major yield-reducing disease worldwide.",
+    "symptoms": ["Long cigar-shaped gray-green to tan lesions", "Lesions 2.5-15cm long parallel to leaf margins", "Lesions may have dark borders", "Severe: entire plant looks blighted"],
+    "treatment": ["Spray Propiconazole 25% EC @ 1ml/L water", "Apply Azoxystrobin @ 1ml/L water", "Use Mancozeb 75% WP @ 2.5g/L as protective spray", "Treat at tasseling stage for best results"],
+    "prevention": ["Use resistant hybrid varieties — most important control", "Rotate with non-host crops like soybean or wheat", "Deep plow to bury infected residue", "Avoid excessive nitrogen fertilization"],
+    "severity": "High",
+    "spread_conditions": ["Moderate temperatures 18-27°C", "High humidity and heavy dew", "Rain splash dispersal", "Dense canopy reducing air movement"]
+  },
+  "Corn_(maize)___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన మొక్కజొన్న",
+    "crop": "Corn / Maize",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Monitor weekly for early disease signs", "Ensure balanced NPK fertilization", "Maintain proper plant spacing", "Irrigate at base not overhead"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Grape___Black_rot": {
+    "telugu_name": "ద్రాక్ష బ్లాక్ రాట్",
+    "crop": "Grape",
+    "description": "Fungal disease caused by Guignardia bidwellii. Can destroy entire grape crop if untreated.",
+    "symptoms": ["Tan circular spots with dark borders on leaves", "Mummified black shriveled berries", "Dark cankers on shoots", "Infected berries shrivel and turn black"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Myclobutanil @ 0.5ml/L water", "Use Captan 50% WP @ 2g/L water", "Begin spraying at bud break, repeat every 10-14 days"],
+    "prevention": ["Remove and destroy mummified berries", "Prune out infected canes", "Ensure good vine canopy management", "Avoid overhead irrigation"],
+    "severity": "Very High",
+    "spread_conditions": ["Warm temperatures 26-32°C", "Wet weather for 6+ hours", "Rain splash dispersal", "High humidity"]
+  },
+  "Grape___Esca_(Black_Measles)": {
+    "telugu_name": "ద్రాక్ష ఎస్కా వ్యాధి",
+    "crop": "Grape",
+    "description": "Complex fungal disease affecting wood and leaves. One of the most destructive grapevine diseases.",
+    "symptoms": ["Tiger-stripe pattern on leaves — yellow/red between veins", "Small dark spots on berries (black measles)", "Sudden vine collapse in summer", "Internal wood discoloration"],
+    "treatment": ["No complete cure available", "Remove and burn severely affected vines", "Apply sodium arsenite to pruning wounds (where legal)", "Use Trichoderma-based biocontrol on wounds"],
+    "prevention": ["Protect pruning wounds with fungicide paste", "Prune during dry weather", "Sterilize pruning tools between vines", "Avoid large pruning wounds"],
+    "severity": "Very High",
+    "spread_conditions": ["Pruning wound infection", "Wet conditions during pruning", "Old vines more susceptible", "Stress from drought or waterlogging"]
+  },
+  "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)": {
+    "telugu_name": "ద్రాక్ష ఆకు తెగులు",
+    "crop": "Grape",
+    "description": "Fungal disease caused by Isariopsis clavispora. Affects leaves and reduces photosynthesis.",
+    "symptoms": ["Irregular dark brown spots on older leaves", "Spots enlarge and merge", "Premature defoliation", "Reduced fruit quality and yield"],
+    "treatment": ["Spray Carbendazim 50% WP @ 1g/L water", "Apply Mancozeb 75% WP @ 2.5g/L water", "Use Copper oxychloride @ 3g/L water", "Repeat every 10-14 days"],
+    "prevention": ["Remove and destroy infected leaves", "Maintain good vineyard sanitation", "Improve air circulation by proper pruning", "Avoid excessive nitrogen"],
+    "severity": "Medium",
+    "spread_conditions": ["Warm and humid conditions", "Rain splash", "Dense vine canopy", "Post-monsoon weather"]
+  },
+  "Grape___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన ద్రాక్ష",
+    "crop": "Grape",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Regular scouting every 7-10 days", "Maintain proper vine training", "Balanced fertilization", "Good drainage to prevent waterlogging"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Peach___Bacterial_spot": {
+    "telugu_name": "పీచ్ బ్యాక్టీరియల్ స్పాట్",
+    "crop": "Peach",
+    "description": "Bacterial disease caused by Xanthomonas arboricola pv. pruni. Affects leaves, fruit, and twigs.",
+    "symptoms": ["Small water-soaked spots on leaves turning purple-brown", "Shot-hole appearance as spots fall out", "Pitted and cracked fruit surface", "Twig cankers with gumming"],
+    "treatment": ["Spray Copper hydroxide @ 2g/L water", "Apply Oxytetracycline antibiotic @ 0.5g/L water", "Use Copper oxychloride @ 3g/L water", "Begin at petal fall, repeat every 10-14 days"],
+    "prevention": ["Plant resistant varieties", "Avoid overhead sprinkler irrigation", "Prune to improve air circulation", "Avoid wounding trees during wet weather"],
+    "severity": "High",
+    "spread_conditions": ["Rainy windy weather", "Temperatures 19-28°C", "Wounds from insects or hail", "High humidity"]
+  },
+  "Peach___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన పీచ్",
+    "crop": "Peach",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Regular monitoring", "Proper irrigation management", "Annual pruning for air circulation", "Balanced fertilizer application"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Pepper,_bell___Bacterial_spot": {
+    "telugu_name": "మిరపకాయ బ్యాక్టీరియల్ స్పాట్",
+    "crop": "Bell Pepper",
+    "description": "Bacterial disease caused by Xanthomonas campestris pv. vesicatoria. Common in warm humid regions.",
+    "symptoms": ["Small water-soaked circular spots on leaves", "Spots turn brown with yellow halo", "Raised scabby spots on fruit", "Premature leaf drop reducing fruit quality"],
+    "treatment": ["Spray Copper hydroxide 77% WP @ 2g/L water", "Apply Copper oxychloride @ 3g/L water", "Use Streptomycin sulphate @ 0.5g/L water", "Repeat every 7-10 days in wet weather"],
+    "prevention": ["Use certified disease-free seed", "Avoid working in wet fields", "Rotate crops for 2-3 years", "Remove and destroy infected plant debris"],
+    "severity": "High",
+    "spread_conditions": ["Warm temperatures 24-30°C", "High humidity and rain", "Wind and rain dispersal", "Transplant wounding"]
+  },
+  "Pepper,_bell___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన మిరపకాయ",
+    "crop": "Bell Pepper",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Regular field scouting", "Use drip irrigation", "Balanced fertilization with potassium for disease resistance", "Crop rotation every season"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Potato___Early_blight": {
+    "telugu_name": "బంగాళాదుంప అర్లీ బ్లైట్",
+    "crop": "Potato",
+    "description": "Fungal disease caused by Alternaria solani. Reduces yield by killing leaves prematurely.",
+    "symptoms": ["Dark brown circular spots with concentric rings (target board pattern)", "Yellow halo around spots", "Lower leaves affected first", "Lesions coalesce causing leaf death"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Chlorothalonil 75% WP @ 2g/L water", "Use Azoxystrobin @ 1ml/L water", "Treat every 7-10 days from 30 days after planting"],
+    "prevention": ["Plant certified disease-free seed tubers", "Avoid overhead irrigation", "Maintain adequate plant nutrition especially nitrogen", "Rotate with non-solanaceous crops"],
+    "severity": "Medium",
+    "spread_conditions": ["Warm temperatures 24-29°C", "High humidity with dew periods", "Plant stress from drought or poor nutrition", "Dense canopy"]
+  },
+  "Potato___Late_blight": {
+    "telugu_name": "బంగాళాదుంప లేట్ బ్లైట్",
+    "crop": "Potato",
+    "description": "Caused by Phytophthora infestans. Most devastating potato disease — caused Irish Famine 1845.",
+    "symptoms": ["Water-soaked pale green spots on leaf edges", "White fuzzy growth on leaf underside in humid conditions", "Lesions turn brown-black rapidly", "Tubers show brown rot internally"],
+    "treatment": ["Spray Metalaxyl + Mancozeb @ 2.5g/L water IMMEDIATELY", "Apply Cymoxanil + Mancozeb @ 2.5g/L water", "Use Dimethomorph @ 1g/L water", "Spray every 5-7 days in cool wet weather"],
+    "prevention": ["Use certified resistant varieties like Kufri Jyoti", "Destroy volunteer potato plants", "Avoid excessive irrigation", "Hill up soil around plants to protect tubers"],
+    "severity": "Very High — Act immediately",
+    "spread_conditions": ["Cool temperatures 10-20°C", "High humidity above 90%", "Wet foggy conditions", "Poor air circulation"]
+  },
+  "Potato___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన బంగాళాదుంప",
+    "crop": "Potato",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Monitor for late blight weekly in cool wet weather", "Use certified seed tubers", "Proper earthing up", "Balanced NPK with adequate potassium"],
+    "severity": "None",
+    "spread_conditions": []
+  },
+  "Tomato___Bacterial_spot": {
+    "telugu_name": "టమాటో బ్యాక్టీరియల్ స్పాట్",
+    "crop": "Tomato",
+    "description": "Bacterial disease caused by Xanthomonas species. Affects leaves, stems, and fruit.",
+    "symptoms": ["Small water-soaked spots on leaves turning brown", "Spots with yellow halo", "Raised scabby spots on green fruit", "Defoliation in severe cases"],
+    "treatment": ["Spray Copper hydroxide 77% WP @ 2g/L water", "Apply Copper oxychloride @ 3g/L water", "Use Streptomycin @ 0.5g/L water with copper", "Apply every 7 days in wet conditions"],
+    "prevention": ["Use disease-free transplants", "Avoid working in wet field", "Stake plants for air circulation", "Rotate crops — avoid tomato family for 2 years"],
+    "severity": "High",
+    "spread_conditions": ["Warm 24-30°C with rain", "Wind-driven rain", "High humidity", "Overhead irrigation"]
+  },
+  "Tomato___Early_blight": {
+    "telugu_name": "టమాటో అర్లీ బ్లైట్",
+    "crop": "Tomato",
+    "description": "Fungal disease caused by Alternaria solani. Very common in warm regions.",
+    "symptoms": ["Dark brown spots with concentric rings on older leaves", "Yellow area surrounding spots", "Lesions on stem at soil level (collar rot)", "Fruit infection at stem end"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Chlorothalonil 75% WP @ 2g/L water", "Use Azoxystrobin @ 1ml/L water", "Begin at first sign, repeat every 7-10 days"],
+    "prevention": ["Remove lower infected leaves", "Mulch to prevent soil splash", "Stake plants properly", "Avoid wetting foliage during irrigation"],
+    "severity": "Medium",
+    "spread_conditions": ["Warm temperatures 24-29°C", "High humidity", "Rainy weather", "Plant stress"]
+  },
+  "Tomato___Late_blight": {
+    "telugu_name": "టమాటో లేట్ బ్లైట్",
+    "crop": "Tomato",
+    "description": "Caused by Phytophthora infestans. Can destroy entire crop in 7-10 days in favourable conditions.",
+    "symptoms": ["Irregular water-soaked gray-green spots on leaves", "White mold on leaf underside", "Dark brown lesions on stems", "Firm brown rot on fruit"],
+    "treatment": ["Spray Metalaxyl + Mancozeb @ 2.5g/L water immediately", "Apply Cymoxanil + Mancozeb @ 2.5g/L water", "Use Dimethomorph @ 1g/L water", "Spray every 5-7 days — do not delay"],
+    "prevention": ["Use resistant varieties", "Avoid overhead irrigation", "Ensure good field drainage", "Remove and burn infected plants"],
+    "severity": "Very High — Act immediately",
+    "spread_conditions": ["Cool 10-20°C with high humidity", "Foggy conditions", "Rainy weather", "Poor drainage"]
+  },
+  "Tomato___Leaf_Mold": {
+    "telugu_name": "టమాటో లీఫ్ మోల్డ్",
+    "crop": "Tomato",
+    "description": "Fungal disease caused by Passalora fulva. Common in greenhouse and humid field conditions.",
+    "symptoms": ["Pale green-yellow spots on upper leaf surface", "Olive-green to brown velvety mold on leaf underside", "Infected leaves curl and wither", "Mainly affects older leaves first"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Chlorothalonil @ 2g/L water", "Use Copper-based fungicide @ 3g/L water", "Improve ventilation immediately"],
+    "prevention": ["Reduce humidity by improving air circulation", "Avoid overhead watering", "Remove lower leaves to improve airflow", "Plant in well-spaced rows"],
+    "severity": "Medium",
+    "spread_conditions": ["High humidity above 85%", "Temperatures 22-24°C", "Poor air circulation", "Greenhouse conditions"]
+  },
+  "Tomato___Septoria_leaf_spot": {
+    "telugu_name": "టమాటో సెప్టోరియా లీఫ్ స్పాట్",
+    "crop": "Tomato",
+    "description": "Fungal disease caused by Septoria lycopersici. Very common and destructive in wet seasons.",
+    "symptoms": ["Small circular spots with dark brown border and gray center", "Tiny black dots (pycnidia) visible in spot center", "Lower leaves affected first", "Severe defoliation reducing fruit quality"],
+    "treatment": ["Spray Mancozeb 75% WP @ 2.5g/L water", "Apply Chlorothalonil 75% WP @ 2g/L water", "Use Copper fungicide @ 3g/L water", "Remove and destroy infected leaves before spraying"],
+    "prevention": ["Remove infected lower leaves immediately", "Mulch soil to prevent splash", "Avoid overhead irrigation", "Rotate crops for 2-3 years"],
+    "severity": "High",
+    "spread_conditions": ["Warm 20-25°C with frequent rain", "High humidity", "Rain splash from soil", "Dense planting"]
+  },
+  "Tomato___Spider_mites Two-spotted_spider_mite": {
+    "telugu_name": "టమాటో స్పైడర్ మైట్స్",
+    "crop": "Tomato",
+    "description": "Infestation by Tetranychus urticae. Not a fungal disease — caused by tiny mites sucking sap.",
+    "symptoms": ["Tiny yellow or white stippling on leaves", "Fine webbing on leaf undersides", "Leaves turn bronze then dry out", "Severe: entire plant looks dusty and dying"],
+    "treatment": ["Spray Abamectin @ 0.5ml/L water", "Apply Spiromesifen @ 1ml/L water", "Use Neem oil @ 5ml/L water", "Spray on leaf underside — repeat every 5-7 days"],
+    "prevention": ["Maintain adequate soil moisture — dry conditions favor mites", "Avoid excessive nitrogen fertilization", "Introduce predatory mites as biocontrol", "Remove heavily infested leaves"],
+    "severity": "High",
+    "spread_conditions": ["Hot dry weather above 30°C", "Low humidity", "Dusty field conditions", "Water stress in plants"]
+  },
+  "Tomato___Target_Spot": {
+    "telugu_name": "టమాటో టార్గెట్ స్పాట్",
+    "crop": "Tomato",
+    "description": "Fungal disease caused by Corynespora cassiicola. Affects all above-ground plant parts.",
+    "symptoms": ["Circular brown spots with concentric target-like rings", "Spots on leaves, stems, and fruit", "Dark brown sunken lesions on fruit", "Defoliation in severe cases"],
+    "treatment": ["Spray Azoxystrobin @ 1ml/L water", "Apply Mancozeb 75% WP @ 2.5g/L water", "Use Chlorothalonil @ 2g/L water", "Apply every 7-14 days"],
+    "prevention": ["Avoid overhead irrigation", "Stake plants for air circulation", "Remove infected plant debris", "Rotate crops annually"],
+    "severity": "Medium",
+    "spread_conditions": ["Warm humid conditions", "Extended leaf wetness", "Temperatures 20-30°C", "Rain splash"]
+  },
+  "Tomato___Tomato_mosaic_virus": {
+    "telugu_name": "టమాటో మొజాయిక్ వైరస్",
+    "crop": "Tomato",
+    "description": "Viral disease caused by Tomato mosaic virus (ToMV). Spreads through contact and tools.",
+    "symptoms": ["Mosaic pattern of light and dark green on leaves", "Leaf distortion and curling", "Stunted plant growth", "Reduced and malformed fruit"],
+    "treatment": ["No cure for viral disease", "Remove and destroy infected plants immediately", "Control aphids that spread virus", "Spray Imidacloprid @ 0.5ml/L to control vectors"],
+    "prevention": ["Use virus-resistant varieties", "Sterilize tools with 10% bleach solution", "Wash hands before handling plants", "Control aphid population with neem oil"],
+    "severity": "Very High — no cure",
+    "spread_conditions": ["Contact transmission through tools", "Aphid feeding", "Infected seed", "Handling infected plants"]
+  },
+  "Tomato___Tomato_Yellow_Leaf_Curl_Virus": {
+    "telugu_name": "టమాటో పసుపు ఆకు మురి వైరస్",
+    "crop": "Tomato",
+    "description": "Viral disease transmitted by whitefly Bemisia tabaci. Devastating in tropical regions including Telangana.",
+    "symptoms": ["Upward curling and yellowing of leaves", "Stunted bushy plant growth", "Small crumpled leaves", "Flower drop and very poor fruit set"],
+    "treatment": ["No cure — remove infected plants to prevent spread", "Spray Imidacloprid 17.8% SL @ 0.5ml/L to kill whitefly vectors", "Apply Thiamethoxam @ 0.3g/L water", "Yellow sticky traps to monitor whitefly"],
+    "prevention": ["Use TYLCV-resistant varieties like Arka Rakshak", "Install 50-mesh insect-proof net in nursery", "Apply systemic insecticide at transplanting", "Rogue out infected plants in first 3 weeks"],
+    "severity": "Very High — major problem in Telangana",
+    "spread_conditions": ["Whitefly population above threshold", "Hot dry weather", "Temperatures above 30°C", "Lack of natural enemies for whitefly"]
+  },
+  "Tomato___healthy": {
+    "telugu_name": "ఆరోగ్యకరమైన టమాటో",
+    "crop": "Tomato",
+    "description": "Plant appears healthy with no signs of disease.",
+    "symptoms": ["No disease symptoms present"],
+    "treatment": ["No treatment required"],
+    "prevention": ["Scout weekly for early detection", "Use drip irrigation", "Stake plants at 20-25cm height", "Apply balanced fertilizer — avoid excess nitrogen"],
+    "severity": "None",
+    "spread_conditions": []
+  }
+}
