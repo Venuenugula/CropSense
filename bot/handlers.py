@@ -2,6 +2,7 @@ from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardR
 from telegram.ext import ContextTypes
 from bot.pipeline import run_pipeline
 from utils.voice import transcribe_audio, text_to_speech_async, detect_language_from_audio
+from utils.crop_calendar import find_crop, generate_calendar_response, get_available_crops
 from utils.fertilizer_advisor import (
     find_product, generate_fertilizer_response, handle_unknown_product
 )
@@ -58,15 +59,15 @@ async def send_long_message(message, text: str, parse_mode: str = "HTML"):
 
 # ─── Central text router ──────────────────────────────────────────────────────
 async def route_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Route all text messages based on active conversation state."""
     uid = update.effective_user.id
     if uid in fertilizer_state:
         await fertilizer_conversation(update, context)
     elif uid in scheme_state:
         await schemes_conversation(update, context)
+    elif uid in calendar_state:
+        await calendar_conversation(update, context)
     else:
         await text_handler(update, context)
-
 # ─── Command handlers ─────────────────────────────────────────────────────────
 async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
     name = update.effective_user.first_name or "రైతు"
@@ -197,13 +198,15 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         # Route to active conversation
-        if uid in fertilizer_state or uid in scheme_state:
+        if uid in fertilizer_state or uid in scheme_state or uid in calendar_state:
             update.message.text = transcribed
             await processing_msg.delete()
             if uid in fertilizer_state:
                 await fertilizer_conversation(update, context)
             elif uid in scheme_state:
                 await schemes_conversation(update, context)
+            elif uid in calendar_state:
+                await calendar_conversation(update, context)
             return
 
         # If photo is waiting → treat voice as location
@@ -252,6 +255,83 @@ Answer in simple {lang} language. Max 4-5 sentences. Conversational tone.
             f"❌ లోపం వచ్చింది / Error: <code>{str(e)[:100]}</code>",
             parse_mode="HTML"
         )
+# ─── Calendar handlers ────────────────────────────────────────────────────────
+calendar_state = {}
+
+async def calendar_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid  = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    calendar_state[uid] = {"step": "ask_crop", "lang": lang}
+
+    available = get_available_crops()
+    if lang == "telugu":
+        await update.message.reply_text(
+            "📅 *పంట క్యాలెండర్*\n\n"
+            "మీ పంట పేరు చెప్పండి:\n\n"
+            f"అందుబాటులో ఉన్న పంటలు:\n{available}\n\n"
+            "ఉదాహరణ: వరి, టమాటో, పత్తి, వేరుశెనగ",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(
+                [["వరి", "టమాటో"], ["పత్తి", "వేరుశెనగ"], ["మొక్కజొన్న"]],
+                one_time_keyboard=True,
+                resize_keyboard=True
+            )
+        )
+    else:
+        await update.message.reply_text(
+            "📅 *Crop Calendar*\n\n"
+            "Which crop do you want the calendar for?\n\n"
+            f"Available crops: {available}",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(
+                [["Rice", "Tomato"], ["Cotton", "Groundnut"], ["Maize"]],
+                one_time_keyboard=True,
+                resize_keyboard=True
+            )
+        )
+
+async def calendar_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid   = update.effective_user.id
+    state = calendar_state.get(uid, {})
+    lang  = state.get("lang", "telugu")
+    text  = (update.message.text or "").strip()
+
+    if state.get("step") == "ask_crop":
+        crop_name, crop_data = find_crop(text)
+
+        if not crop_data:
+            available = get_available_crops()
+            await update.message.reply_text(
+                f"⚠️ '{text}' పంట దొరకలేదు.\n\n"
+                f"అందుబాటులో ఉన్న పంటలు: {available}",
+                reply_markup=ReplyKeyboardMarkup(
+                    [["వరి", "టమాటో"], ["పత్తి", "వేరుశెనగ"], ["మొక్కజొన్న"]],
+                    one_time_keyboard=True, resize_keyboard=True
+                )
+            )
+            return
+
+        calendar_state.pop(uid, None)
+        processing = await update.message.reply_text(
+            f"📅 {crop_data['telugu_name']} పంట క్యాలెండర్ తయారు చేస్తున్నాం...\n"
+            f"Preparing {crop_name} crop calendar... ⏳",
+            reply_markup=ReplyKeyboardRemove()
+        )
+
+        response = generate_calendar_response(crop_name, crop_data, lang)
+        await processing.delete()
+        await send_long_message(update.message, html(response))
+
+        # Audio
+        try:
+            wlang = "te" if lang == "telugu" else "en"
+            audio = await text_to_speech_async(response, language=wlang)
+            await update.message.reply_voice(
+                voice=io.BytesIO(audio),
+                caption=f"📅 Rythu Mitra — {crop_data['telugu_name']} పంట క్యాలెండర్"
+            )
+        except Exception as e:
+            print(f"Calendar audio failed: {e}")
 
 # ─── Text handler ─────────────────────────────────────────────────────────────
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):

@@ -1,3 +1,5 @@
+from email.mime import application
+
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
@@ -10,7 +12,7 @@ from bot.handlers import (
     photo_handler, location_handler, voice_handler, text_handler,
     fertilizer_command, fertilizer_conversation, fertilizer_state,
     schemes_command, schemes_conversation, scheme_state,
-    route_text,
+    route_text,calendar_command, calendar_conversation, calendar_state,
 )
 from dotenv import load_dotenv
 import os, logging
@@ -44,6 +46,8 @@ async def post_init(application):
         BotCommand("mandu",      "💊 మందు వివరాలు"),
         BotCommand("schemes",    "🏛️ ప్రభుత్వ పథకాలు"),
         BotCommand("pathakalu",  "🏛️ పథకాల సమాచారం"),
+        BotCommand("calendar",  "📅 పంట క్యాలెండర్"),
+        BotCommand("panchanga", "📅 నెల వారీ షెడ్యూల్"),
         BotCommand("help",       "సహాయం / Help"),
     ])
     logger.info("Bot commands set successfully.")
@@ -73,6 +77,8 @@ def main():
     application.add_handler(CommandHandler("mandu",      fertilizer_command))
     application.add_handler(CommandHandler("schemes",    schemes_command))
     application.add_handler(CommandHandler("pathakalu",  schemes_command))
+    application.add_handler(CommandHandler("calendar",  calendar_command))
+    application.add_handler(CommandHandler("panchanga", calendar_command))
 
     # Messages
     application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
