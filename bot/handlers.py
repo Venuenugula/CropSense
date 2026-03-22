@@ -4,6 +4,9 @@ from bot.pipeline import run_pipeline
 from utils.voice import transcribe_audio, text_to_speech_async, detect_language_from_audio
 import re
 import io
+from utils.fertilizer_advisor import (
+    find_product, generate_fertilizer_response, handle_unknown_product
+)
 # ─── User state store ────────────────────────────────────────────────────────
 user_state = {}
 
@@ -129,6 +132,193 @@ async def location_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     lang = state.get("lang", "telugu")
 
     await _run_and_reply(update, context, uid, state, lat, lon, lang)
+# ─── Fertilizer conversation state ───────────────────────────────────────────
+fertilizer_state = {}
+
+async def fertilizer_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Start fertilizer advisor conversation."""
+    uid  = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+
+    fertilizer_state[uid] = {"step": "ask_product", "lang": lang}
+
+    if lang == "telugu":
+        await update.message.reply_text(
+            "💊 *ఎరువు / మందు సలహా కేంద్రం*\n\n"
+            "మీరు వాడాలనుకుంటున్న మందు లేదా ఎరువు పేరు చెప్పండి.\n"
+            "ఉదాహరణ: Mancozeb, Urea, DAP, Neem Oil, Imidacloprid\n\n"
+            "లేదా మీ దగ్గర ఉన్న పాకెట్ పై ఉన్న పేరు టైప్ చేయండి.",
+            parse_mode="Markdown"
+        )
+    else:
+        await update.message.reply_text(
+            "💊 *Fertilizer & Pesticide Advisor*\n\n"
+            "Type the name of the fertilizer or pesticide you want to use.\n"
+            "Example: Mancozeb, Urea, DAP, Neem Oil, Imidacloprid\n\n"
+            "Or type the name shown on your packet.",
+            parse_mode="Markdown"
+        )
+
+async def fertilizer_conversation(update: Update,
+                                   context: ContextTypes.DEFAULT_TYPE):
+    """Handle multi-step fertilizer advisor conversation."""
+    uid   = update.effective_user.id
+    state = fertilizer_state.get(uid, {})
+    lang  = state.get("lang", "telugu")
+    text  = update.message.text.strip()
+    step  = state.get("step")
+
+    if step == "ask_product":
+        product_name, product_data = find_product(text)
+        fertilizer_state[uid]["product_query"] = text
+
+        if product_data:
+            fertilizer_state[uid]["product_name"] = product_name
+            fertilizer_state[uid]["product_data"] = product_data
+            fertilizer_state[uid]["step"]         = "ask_crop"
+
+            crops = ", ".join(product_data["target_crops"][:5])
+            if lang == "telugu":
+                await update.message.reply_text(
+                    f"✅ *{product_data['telugu_name']} ({product_name})* దొరికింది!\n\n"
+                    f"🌿 ఏ పంటకు వాడుతున్నారు?\n"
+                    f"ఉదాహరణ: {crops}",
+                    parse_mode="Markdown"
+                )
+            else:
+                await update.message.reply_text(
+                    f"✅ Found *{product_name}*!\n\n"
+                    f"🌿 Which crop are you using it for?\n"
+                    f"Example: {crops}",
+                    parse_mode="Markdown"
+                )
+        else:
+            # Unknown product — use Gemini general knowledge
+            fertilizer_state[uid] = {}
+            processing = await update.message.reply_text(
+                "🔍 వెతుకుతున్నాం... / Searching..."
+            )
+            response = handle_unknown_product(text, lang)
+            await processing.delete()
+            await update.message.reply_text(response, parse_mode="HTML")
+
+            # Send audio
+            try:
+                whisper_lang = "te" if lang == "telugu" else "en"
+                from utils.voice import text_to_speech_async
+                audio = await text_to_speech_async(response, language=whisper_lang)
+                await update.message.reply_voice(
+                    voice=io.BytesIO(audio),
+                    caption="💊 Rythu Mitra — Fertilizer Advisor"
+                )
+            except Exception:
+                pass
+
+    elif step == "ask_crop":
+        fertilizer_state[uid]["crop"] = text
+        fertilizer_state[uid]["step"] = "ask_acres"
+        if lang == "telugu":
+            await update.message.reply_text(
+                f"🌾 మీకు ఎన్ని ఎకరాల {text} పంట ఉంది?\n"
+                f"సంఖ్య మాత్రమే టైప్ చేయండి (ఉదా: 2, 0.5, 3.5)"
+            )
+        else:
+            await update.message.reply_text(
+                f"🌾 How many acres of {text} do you have?\n"
+                f"Type only the number (e.g: 2, 0.5, 3.5)"
+            )
+
+    elif step == "ask_acres":
+        try:
+            acres = float(text.replace("ఎకరాలు", "").replace("acres", "").strip())
+            fertilizer_state[uid]["acres"] = acres
+            fertilizer_state[uid]["step"]  = "ask_severity"
+
+            if lang == "telugu":
+                await update.message.reply_text(
+                    "📊 వ్యాధి / సమస్య తీవ్రత ఎంత?\n\n"
+                    "1️⃣ తక్కువ (Mild) — కొన్ని మొక్కలు మాత్రమే\n"
+                    "2️⃣ మధ్యమం (Medium) — సగం పంట\n"
+                    "3️⃣ ఎక్కువ (Severe) — చాలా పంట దెబ్బతింది\n\n"
+                    "1, 2 లేదా 3 టైప్ చేయండి",
+                    reply_markup=ReplyKeyboardMarkup(
+                        [["1 — తక్కువ", "2 — మధ్యమం", "3 — ఎక్కువ"]],
+                        one_time_keyboard=True,
+                        resize_keyboard=True
+                    )
+                )
+            else:
+                await update.message.reply_text(
+                    "📊 How severe is the problem?\n\n"
+                    "1️⃣ Mild — only a few plants\n"
+                    "2️⃣ Medium — about half the crop\n"
+                    "3️⃣ Severe — most of the crop affected\n\n"
+                    "Type 1, 2 or 3",
+                    reply_markup=ReplyKeyboardMarkup(
+                        [["1 — Mild", "2 — Medium", "3 — Severe"]],
+                        one_time_keyboard=True,
+                        resize_keyboard=True
+                    )
+                )
+        except ValueError:
+            await update.message.reply_text(
+                "⚠️ దయచేసి సంఖ్య మాత్రమే టైప్ చేయండి (ఉదా: 2)\n"
+                "Please type only a number (e.g: 2)"
+            )
+
+    elif step == "ask_severity":
+        severity_map = {
+            "1": "mild",   "తక్కువ": "mild",   "mild": "mild",
+            "2": "medium", "మధ్యమం": "medium", "medium": "medium",
+            "3": "severe", "ఎక్కువ": "severe", "severe": "severe",
+        }
+        severity = None
+        for key, val in severity_map.items():
+            if key.lower() in text.lower():
+                severity = val
+                break
+
+        if not severity:
+            await update.message.reply_text(
+                "⚠️ 1, 2 లేదా 3 టైప్ చేయండి / Type 1, 2 or 3"
+            )
+            return
+
+        # Generate full advisory
+        processing = await update.message.reply_text(
+            "⏳ మోతాదు లెక్కిస్తున్నాం... / Calculating dosage...",
+            reply_markup=ReplyKeyboardRemove()
+        )
+
+        response = generate_fertilizer_response(
+            product_name=state["product_name"],
+            product_data=state["product_data"],
+            crop=state["crop"],
+            acres=state["acres"],
+            severity=severity,
+            lang=lang,
+        )
+
+        await processing.delete()
+
+        response_html = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
+        response_html = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response_html)
+        await update.message.reply_text(response_html, parse_mode="HTML")
+
+        # Audio
+        try:
+            whisper_lang = "te" if lang == "telugu" else "en"
+            from utils.voice import text_to_speech_async
+            audio = await text_to_speech_async(response, language=whisper_lang)
+            await update.message.reply_voice(
+                voice=io.BytesIO(audio),
+                caption="💊 Rythu Mitra — Fertilizer Guide"
+            )
+        except Exception:
+            pass
+
+        # Clear state
+        fertilizer_state.pop(uid, None)
 
 # ─── Text handler ─────────────────────────────────────────────────────────────
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
