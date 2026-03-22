@@ -9,3 +9,7 @@ data/
 *.pt
 *.pth
 .DS_Store
+
+model/crop_disease.onnx
+model/crop_disease_fp32.onnx
+model/best_model.pt
