@@ -1,7 +1,7 @@
 from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
 from telegram.ext import ContextTypes
 from bot.pipeline import run_pipeline
-from utils.voice import transcribe_audio, text_to_speech, detect_language_from_audio
+from utils.voice import transcribe_audio, text_to_speech_async, detect_language_from_audio
 import re
 import io
 # ─── User state store ────────────────────────────────────────────────────────
@@ -171,47 +171,43 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await _run_and_reply(update, context, uid, state, lat, lon, lang,
                          location_label=text)
 async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handle voice messages from farmers."""
+    """
+    Voice input → always respond with BOTH text + audio immediately.
+    No extra prompts. No 'Listen 👇' ask.
+    """
     uid   = update.effective_user.id
     state = user_state.get(uid, {})
     lang  = state.get("lang", "telugu")
 
-    # Download voice message
-    voice     = update.message.voice
-    file      = await context.bot.get_file(voice.file_id)
-    audio_bytes = await file.download_as_bytearray()
+    # Download voice
+    file        = await context.bot.get_file(update.message.voice.file_id)
+    audio_bytes = bytes(await file.download_as_bytearray())
 
     processing_msg = await update.message.reply_text(
-        "🎤 మీ గొంతు వింటున్నాం... / Listening...\n"
-        "⏳ కొంచెం వేచి ఉండండి / Please wait..."
+        "🎤 వింటున్నాం... / Listening...",
     )
 
     try:
-        # Step 1 — Transcribe voice to text
+        # Step 1 — Transcribe
         whisper_lang = "te" if lang == "telugu" else "en"
-        transcribed  = transcribe_audio(bytes(audio_bytes), language=whisper_lang)
+        transcribed  = transcribe_audio(audio_bytes, language=whisper_lang)
 
         if not transcribed:
             await processing_msg.delete()
             await update.message.reply_text(
-                "❌ గొంతు అర్థం కాలేదు. దయచేసి మళ్ళీ మాట్లాడండి.\n"
-                "Could not understand. Please speak again."
+                "❌ అర్థం కాలేదు. దయచేసి మళ్ళీ మాట్లాడండి.\n"
+                "Could not understand. Please try again."
             )
             return
 
-        await update.message.reply_text(
-            f"📝 మీరు చెప్పింది / You said:\n_{transcribed}_",
-            parse_mode="Markdown"
+        # Show what was heard
+        await processing_msg.edit_text(
+            f"🎤 మీరు చెప్పింది: <i>{transcribed}</i>\n"
+            f"⏳ సమాధానం తయారవుతోంది...",
+            parse_mode="HTML"
         )
 
-        # Step 2 — Detect language from transcription
-        detected_lang = detect_language_from_audio(transcribed)
-        if detected_lang != lang:
-            user_state[uid]["lang"] = detected_lang
-            lang = detected_lang
-
-        # Step 3 — Check if farmer is asking about disease
-        # (has photo in state → treat voice as location fallback)
+        # Step 2 — If photo waiting → treat voice as district name
         if "img_bytes" in state:
             from forecast.weather import resolve_location
             lat, lon = resolve_location(transcribed)
@@ -223,51 +219,51 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
             )
             return
 
-        # Step 4 — General farming question via Gemini
-        await processing_msg.delete()
-        processing_msg = await update.message.reply_text(
-            "🤔 సమాధానం తయారు చేస్తున్నాం... / Preparing answer..."
-        )
-
+        # Step 3 — General farming question
         from utils.gemini import call_gemini
         from utils.language import get_system_prompt
+        import re
 
         system = get_system_prompt(lang)
         prompt = f"""
 {system}
 
-ఒక రైతు ఈ ప్రశ్న అడిగాడు / A farmer asked this question:
-"{transcribed}"
+రైతు ప్రశ్న / Farmer's question: "{transcribed}"
 
 వ్యవసాయ నిపుణుడిగా సులభంగా సమాధానం ఇవ్వండి.
 Answer as an agricultural expert in simple {lang} language.
-Keep the answer concise — maximum 5-6 sentences.
+Maximum 4-5 sentences. No bullet points. Conversational tone.
 """
-        response = call_gemini(prompt)
+        response     = call_gemini(prompt)
+        response_html = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
+        response_html = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response_html)
+
         await processing_msg.delete()
 
-        # Step 5 — Send text response
-        response_clean = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
-        response_clean = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response_clean)
-        await update.message.reply_text(response_clean, parse_mode="HTML")
-
-        # Step 6 — Send voice response back
+        # Step 4 — Send text + audio TOGETHER immediately
+        # Text first
         await update.message.reply_text(
-            "🔊 వినండి / Listen 👇"
+            f"🌱 <b>సమాధానం / Answer:</b>\n\n{response_html}",
+            parse_mode="HTML"
         )
-        audio_response = text_to_speech(response, language=whisper_lang)
+
+        # Audio immediately after — no asking
+        from utils.voice import text_to_speech_async
+        audio_out = await text_to_speech_async(response, language=whisper_lang)
         await update.message.reply_voice(
-            voice=io.BytesIO(audio_response),
+            voice=io.BytesIO(audio_out),
             caption="🌱 Rythu Mitra"
         )
 
     except Exception as e:
-        await processing_msg.delete()
+        try:
+            await processing_msg.delete()
+        except Exception:
+            pass
         await update.message.reply_text(
             f"❌ లోపం వచ్చింది / Error: <code>{str(e)[:100]}</code>",
             parse_mode="HTML"
         )
-
 # ─── Shared pipeline runner ───────────────────────────────────────────────────
 async def _run_and_reply(
     update, context, uid, state,
@@ -282,33 +278,31 @@ async def _run_and_reply(
 
     try:
         result = run_pipeline(
-        image_bytes=state["img_bytes"],
-        lat=lat,
-        lon=lon,
-        lang=lang,
-        user_id=uid,        # add this line
-    )
+            image_bytes=state["img_bytes"],
+            lat=lat,
+            lon=lon,
+            lang=lang,
+            user_id=uid,
+        )
         await processing_msg.delete()
 
-        # Send main response — use HTML parse mode to avoid Markdown issues
-        response = result["response"]
-        # Convert Markdown bold to HTML bold for safety
-        response = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
-        response = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response)
-        response = response.replace('---', '──────────')
-        await update.message.reply_text(response, parse_mode="HTML")
+        response      = result["response"]
+        top3          = result["top_predictions"]
+        risk          = result["weather_risk"]
+        loc_name      = result["location_name"]
+        whisper_lang  = "te" if lang == "telugu" else "en"
 
-        # Send top predictions
-        top3      = result["top_predictions"]
-        risk      = result["weather_risk"]
-        loc_name  = result["location_name"]
-        conf_text = (
-            f"📊 <b>Top Predictions:</b>\n"
-        )
+        # ── 1. Send main disease report text ──────────────────────────────
+        response_html = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', response)
+        response_html = re.sub(r'\*([^*\n]+?)\*', r'<b>\1</b>', response_html)
+        response_html = response_html.replace('---', '──────────')
+        await update.message.reply_text(response_html, parse_mode="HTML")
+
+        # ── 2. Send top predictions + location + risk ─────────────────────
+        conf_text = "📊 <b>Top Predictions:</b>\n"
         for i, p in enumerate(top3, 1):
-            disease = p['disease'].replace('___', ' — ').replace('_', ' ')
+            disease    = p['disease'].replace('___', ' — ').replace('_', ' ')
             conf_text += f"{i}. {disease} — {p['confidence']}%\n"
-
         conf_text += (
             f"\n📍 <b>Location:</b> {loc_name}\n"
             f"⛅ <b>Spread Risk:</b> {risk['risk_level']} "
@@ -316,7 +310,46 @@ async def _run_and_reply(
         )
         await update.message.reply_text(conf_text, parse_mode="HTML")
 
-        # Clear image from state
+        # ── 3. Send audio of disease report ───────────────────────────────
+        await update.message.reply_text(
+            "🔊 వింటున్నారా? వ్యాధి వివరాలు వింటారా?\n"
+            "🔊 Listen to the disease report 👇"
+        )
+        try:
+            from utils.voice import text_to_speech_async
+            audio_bytes = await text_to_speech_async(
+                result["response"], language=whisper_lang
+            )
+            await update.message.reply_voice(
+                voice=io.BytesIO(audio_bytes),
+                caption="🌱 Rythu Mitra — వ్యాధి నివేదిక / Disease Report"
+            )
+        except Exception as audio_err:
+            print(f"Audio generation failed: {audio_err}")
+
+        # ── 4. Send audio of spread risk advice ───────────────────────────
+        try:
+            spread_text = (
+                f"వ్యాధి వ్యాప్తి ప్రమాదం {risk['risk_level']}గా ఉంది. "
+                f"{risk.get('advice', '')} "
+                f"{risk.get('reason', '')}"
+                if lang == "telugu" else
+                f"Disease spread risk is {risk['risk_level']}. "
+                f"{risk.get('advice', '')} "
+                f"{risk.get('reason', '')}"
+            )
+            from utils.voice import text_to_speech_async
+            risk_audio = await text_to_speech_async(
+                spread_text, language=whisper_lang
+            )
+            await update.message.reply_voice(
+                voice=io.BytesIO(risk_audio),
+                caption=f"⛅ వ్యాప్తి ప్రమాదం / Spread Risk — {risk['risk_level']}"
+            )
+        except Exception as risk_audio_err:
+            print(f"Risk audio failed: {risk_audio_err}")
+
+        # ── 5. Clear image from state ──────────────────────────────────────
         user_state[uid].pop("img_bytes", None)
 
     except Exception as e:
