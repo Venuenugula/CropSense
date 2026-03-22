@@ -13,6 +13,9 @@ from utils.scheme_advisor import (
     generate_schemes_response,
     search_latest_schemes,
 )
+from utils.mandi_prices import (
+    fetch_mandi_prices, format_price_response, find_crop_name
+)
 import re
 import io
 
@@ -68,6 +71,8 @@ async def route_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await schemes_conversation(update, context)
     elif uid in calendar_state:
         await calendar_conversation(update, context)
+    elif uid in price_state:
+        await price_conversation(update, context)
     else:
         await text_handler(update, context)
 # ─── Command handlers ─────────────────────────────────────────────────────────
@@ -200,7 +205,7 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
         # Route to active conversation
-        if uid in fertilizer_state or uid in scheme_state or uid in calendar_state:
+        if uid in fertilizer_state or uid in scheme_state or uid in calendar_state or uid in price_state:
             update.message.text = transcribed
             await processing_msg.delete()
             if uid in fertilizer_state:
@@ -209,6 +214,8 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 await schemes_conversation(update, context)
             elif uid in calendar_state:
                 await calendar_conversation(update, context)
+            elif uid in price_state:
+                await price_conversation(update, context)
             return
 
         # If photo is waiting → treat voice as location
@@ -360,6 +367,71 @@ async def calendar_conversation(update: Update, context: ContextTypes.DEFAULT_TY
             )
         except Exception as e:
             print(f"Calendar audio failed: {e}")
+# ─── Mandi price state ────────────────────────────────────────────────────────
+price_state = {}
+
+async def price_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid  = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    price_state[uid] = {"step": "ask_crop", "lang": lang}
+
+    if lang == "telugu":
+        await update.message.reply_text(
+            "💰 *మండి ధరల కేంద్రం*\n\n"
+            "ఏ పంట ధర కావాలి?\n\n"
+            "ఉదాహరణ: వరి, టమాటో, పత్తి, వేరుశెనగ, ఉల్లి",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(
+                [["వరి", "టమాటో", "పత్తి"],
+                 ["వేరుశెనగ", "మొక్కజొన్న", "ఉల్లి"]],
+                one_time_keyboard=True,
+                resize_keyboard=True
+            )
+        )
+    else:
+        await update.message.reply_text(
+            "💰 *Mandi Price Checker*\n\n"
+            "Which crop price do you want?\n\n"
+            "Example: Rice, Tomato, Cotton, Groundnut, Onion",
+            parse_mode="Markdown",
+            reply_markup=ReplyKeyboardMarkup(
+                [["Rice", "Tomato", "Cotton"],
+                 ["Groundnut", "Maize", "Onion"]],
+                one_time_keyboard=True,
+                resize_keyboard=True
+            )
+        )
+
+async def price_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid   = update.effective_user.id
+    state = price_state.get(uid, {})
+    lang  = state.get("lang", "telugu")
+    text  = (update.message.text or "").strip()
+
+    if state.get("step") == "ask_crop":
+        price_state.pop(uid, None)
+
+        processing = await update.message.reply_text(
+            f"🔍 {text} ధరలు తీసుకుంటున్నాం...\nFetching live prices... ⏳",
+            reply_markup=ReplyKeyboardRemove()
+        )
+
+        records, date, crop_name = fetch_mandi_prices(text)
+        response = format_price_response(records, text, crop_name, date, lang)
+
+        await processing.delete()
+        await send_long_message(update.message, response)
+
+        # Audio
+        try:
+            wlang = "te" if lang == "telugu" else "en"
+            audio = await text_to_speech_async(response, language=wlang)
+            await update.message.reply_voice(
+                voice=io.BytesIO(audio),
+                caption=f"💰 Rythu Mitra — {text} మండి ధరలు"
+            )
+        except Exception as e:
+            print(f"Price audio failed: {e}")
 
 # ─── Text handler ─────────────────────────────────────────────────────────────
 async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
