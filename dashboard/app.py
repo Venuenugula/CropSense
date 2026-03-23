@@ -10,6 +10,10 @@ from db.models import (
     get_disease_frequency,
     get_daily_trend,
     get_risk_distribution,
+    get_hotspots,
+    get_feedback_summary,
+    get_interventions,
+    create_intervention,
 )
 
 st.set_page_config(
@@ -226,6 +230,112 @@ if detections:
     )
 else:
     st.info("No detections logged yet.")
+
+st.divider()
+
+# ─── Official hotspot dashboard ───────────────────────────────────────────────
+st.subheader("🛡️ Official Hotspot Dashboard")
+hcol1, hcol2 = st.columns([2, 1], gap="large")
+
+with hcol1:
+    hotspots = get_hotspots(days=7, min_cases=2)
+    if hotspots:
+        df_hot = pd.DataFrame(hotspots)
+        df_hot["disease"] = df_hot["disease_key"].str.replace("___", " — ").str.replace("_", " ")
+        fig_hot = px.scatter(
+            df_hot,
+            x="cases",
+            y="avg_risk",
+            size="avg_confidence",
+            color="location_name",
+            hover_data=["disease"],
+            labels={"cases": "Cases (7d)", "avg_risk": "Avg Risk Score"},
+            title="District Hotspots by Case Volume and Risk",
+        )
+        st.plotly_chart(fig_hot, use_container_width=True)
+        st.dataframe(
+            df_hot[["location_name", "disease", "cases", "avg_confidence", "avg_risk"]],
+            use_container_width=True,
+            hide_index=True,
+        )
+        st.download_button(
+            "⬇️ Export Hotspots CSV",
+            data=df_hot.to_csv(index=False).encode("utf-8"),
+            file_name="hotspots_report.csv",
+            mime="text/csv",
+        )
+    else:
+        st.info("No hotspots detected for selected thresholds yet.")
+
+with hcol2:
+    st.markdown("#### ➕ Log Intervention")
+    with st.form("intervention_form", clear_on_submit=True):
+        i_district = st.text_input("District", value="Warangal")
+        i_disease = st.text_input("Disease Key", value="Tomato___Late_blight")
+        i_action = st.text_area("Action Plan", value="Field scouting + preventive spray advisory camp")
+        i_owner = st.text_input("Owner", value="District Agri Officer")
+        i_due = st.date_input("Due Date")
+        i_status = st.selectbox("Status", ["planned", "in_progress", "completed"])
+        i_notes = st.text_area("Notes", value="")
+        if st.form_submit_button("Save Intervention"):
+            create_intervention(
+                district=i_district,
+                disease_key=i_disease,
+                action=i_action,
+                owner=i_owner,
+                due_date=str(i_due),
+                status=i_status,
+                notes=i_notes,
+            )
+            st.success("Intervention saved.")
+
+st.markdown("#### 📌 Intervention Workflow")
+interventions = get_interventions(100)
+if interventions:
+    df_int = pd.DataFrame(interventions)
+    st.dataframe(
+        df_int[["id", "district", "disease_key", "status", "owner", "due_date", "updated_at", "action", "notes"]],
+        use_container_width=True,
+        hide_index=True,
+    )
+    st.download_button(
+        "⬇️ Export Interventions CSV",
+        data=df_int.to_csv(index=False).encode("utf-8"),
+        file_name="interventions_report.csv",
+        mime="text/csv",
+    )
+else:
+    st.info("No interventions logged yet.")
+
+st.divider()
+
+# ─── Model monitoring panel ───────────────────────────────────────────────────
+st.subheader("🧪 Model Monitoring Panel")
+m1, m2, m3 = st.columns(3)
+feedback = get_feedback_summary(30)
+
+if detections:
+    df_recent = pd.DataFrame(detections)
+    uncertain_rate = float((df_recent["confidence"] < 65).mean() * 100)
+    avg_conf = float(df_recent["confidence"].mean())
+else:
+    uncertain_rate = 0.0
+    avg_conf = 0.0
+
+m1.metric("👍 Helpful Feedback Rate (30d)", f"{feedback['positive_rate']}%")
+m2.metric("⚠️ Uncertain Prediction Rate", f"{uncertain_rate:.1f}%")
+m3.metric("🎯 Avg Confidence (Recent)", f"{avg_conf:.1f}%")
+
+if detections:
+    df_recent["uncertain"] = df_recent["confidence"] < 65
+    conf_fig = px.histogram(
+        df_recent,
+        x="confidence",
+        nbins=20,
+        title="Confidence Distribution (Recent Detections)",
+        color_discrete_sequence=["#1D9E75"],
+    )
+    st.plotly_chart(conf_fig, use_container_width=True)
 
 st.markdown("""
 <div style='text-align:center; color:#999; font-size:0.82rem; padding:1.5rem 0 0.5rem'>

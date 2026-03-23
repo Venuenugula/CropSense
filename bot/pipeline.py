@@ -10,10 +10,28 @@ from utils.response_generator import (
 )
 from db.models import log_detection, init_db
 from utils.observability import Timer, log_event
-from PIL import Image
+from PIL import Image, ImageStat
 import io
 
-MIN_CONFIDENCE_PERCENT = 65.0
+MIN_CONFIDENCE_PERCENT = 55.0
+MIN_BRIGHTNESS = 35.0
+MIN_SHARPNESS_VAR = 20.0
+
+
+def _assess_photo_quality(image: Image.Image) -> dict:
+    gray = image.convert("L")
+    stat = ImageStat.Stat(gray)
+    brightness = stat.mean[0]
+    sharpness_var = stat.var[0]
+    is_dark = brightness < MIN_BRIGHTNESS
+    is_blurry = sharpness_var < MIN_SHARPNESS_VAR
+    return {
+        "ok": not (is_dark or is_blurry),
+        "brightness": round(brightness, 2),
+        "sharpness_var": round(sharpness_var, 2),
+        "is_dark": is_dark,
+        "is_blurry": is_blurry,
+    }
 
 # init DB on startup
 try:
@@ -31,6 +49,41 @@ def run_pipeline(
     timer = Timer()
     # Step 1 — Disease detection
     image        = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+    quality = _assess_photo_quality(image)
+    if not quality["ok"]:
+        response = (
+            "⚠️ *ఫోటో క్లారిటీ తక్కువగా ఉంది.*\n\n"
+            "దయచేసి ఇలా మళ్లీ ఫోటో పంపండి:\n"
+            "1) వెలుతురు బాగా ఉండాలి\n"
+            "2) ఆకు దగ్గరగా, ఫోకస్‌లో ఉండాలి\n"
+            "3) చేతి కదలిక లేకుండా తీసండి"
+            if lang == "telugu" else
+            "⚠️ *Photo quality is too low for reliable detection.*\n\n"
+            "Please retake with:\n"
+            "1) good lighting\n"
+            "2) close-up focus on one leaf\n"
+            "3) steady hand (no blur)"
+        )
+        location_name = get_location_name(lat, lon)
+        weather_risk = {"risk_level": "Unknown", "risk_score": 0.0}
+        log_event(
+            "photo_quality_low",
+            user_id=user_id,
+            brightness=quality["brightness"],
+            sharpness_var=quality["sharpness_var"],
+            pipeline_ms=timer.elapsed_ms(),
+        )
+        return {
+            "disease_key": "image_quality_issue",
+            "confidence": 0.0,
+            "is_healthy": False,
+            "top_predictions": [],
+            "weather_risk": weather_risk,
+            "location_name": location_name,
+            "response": response,
+            "lang": lang,
+            "uncertain": True,
+        }
     predictions  = predict(image, top_k=3)
     top          = predictions[0]
     disease_key  = top["disease"]

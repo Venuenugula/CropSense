@@ -157,7 +157,7 @@ CropSense/
 │   ├── crop_calendar.py      ← crop calendar guidance
 │   ├── mandi_prices.py       ← mandi price lookup
 │   ├── state_store.py        ← Redis-backed state management
-│   └── observability.py      ← request IDs + structured telemetry logs
+│   ├── observability.py      ← request IDs + structured telemetry logs
 │   └── alert_manager.py      ← community outbreak alert messaging
 ├── tests/
 │   ├── test_gemini.py        ← timeout/retry/fallback tests
@@ -246,6 +246,10 @@ The analytics dashboard shows:
 - Total farmers helped
 - Detection confidence trends
 - 7-day spread risk by region
+- Official hotspot scatter + district priority table
+- Intervention workflow tracker for agriculture officers
+- Exportable CSV reports (hotspots + interventions)
+- Monitoring panel (helpful feedback rate, uncertainty rate, confidence distribution)
 
 ```bash
 streamlit run dashboard/app.py
@@ -304,6 +308,9 @@ Send any of these to get started:
 /telugu         → తెలుగు
 /english        → English
 /help           → How to use CropSense
+/profile        → Save farmer profile (district/crop/acres/irrigation)
+/subscribe      → Subscribe to district+crop outbreak alerts
+/checklist      → Weekly action checklist based on profile
 /fertilizer     → Fertilizer/medicine advisor
 /schemes        → Government schemes advisor
 /calendar       → Crop calendar guidance
@@ -352,6 +359,9 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] Redis-backed persistent session/conversation state
 - [x] Structured observability logs with request IDs and latency metrics
 - [x] Confidence-threshold UX with photo retake guidance
+- [x] Feedback buttons and feedback logging for diagnosis usefulness
+- [x] Farmer profile, alert subscription, and weekly checklist bot flows
+- [x] Official hotspot dashboard, intervention workflow, and CSV exports
 
 ### Planned
 - [ ] Expand crop/disease coverage and local KB depth

@@ -7,7 +7,11 @@ from PIL import Image
 
 
 def _sample_image_bytes() -> bytes:
-    img = Image.new("RGB", (32, 32), color="green")
+    img = Image.new("RGB", (64, 64), color=(180, 220, 120))
+    # Add simple texture so quality-check variance isn't too low.
+    for x in range(0, 64, 4):
+        for y in range(0, 64, 4):
+            img.putpixel((x, y), (30, 120, 30))
     buf = io.BytesIO()
     img.save(buf, format="PNG")
     return buf.getvalue()

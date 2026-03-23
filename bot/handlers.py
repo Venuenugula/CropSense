@@ -1,10 +1,24 @@
-from telegram import Update, ReplyKeyboardMarkup, KeyboardButton, ReplyKeyboardRemove
+from telegram import (
+    Update,
+    ReplyKeyboardMarkup,
+    KeyboardButton,
+    ReplyKeyboardRemove,
+    InlineKeyboardButton,
+    InlineKeyboardMarkup,
+)
 from telegram.ext import ContextTypes
 from bot.pipeline import run_pipeline
 from utils.voice import transcribe_audio, text_to_speech_async, detect_language_from_audio
 from utils.crop_calendar import find_crop, generate_calendar_response, get_available_crops
 from utils.alert_manager import send_community_alerts, build_alert_message
-from db.models import get_outbreak_alerts
+from db.models import (
+    get_outbreak_alerts,
+    upsert_farmer_profile,
+    get_farmer_profile,
+    add_subscription,
+    get_subscriptions,
+    log_feedback,
+)
 from utils.fertilizer_advisor import (
     find_product, generate_fertilizer_response, handle_unknown_product
 )
@@ -28,6 +42,8 @@ fertilizer_state = create_state_store("fertilizer_state")
 scheme_state = create_state_store("scheme_state")
 calendar_state = create_state_store("calendar_state")
 price_state = create_state_store("price_state")
+profile_state = create_state_store("profile_state")
+subscribe_state = create_state_store("subscribe_state")
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 def lang_keyboard():
@@ -78,6 +94,10 @@ async def route_text(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await calendar_conversation(update, context)
     elif uid in price_state:
         await price_conversation(update, context)
+    elif uid in profile_state:
+        await profile_conversation(update, context)
+    elif uid in subscribe_state:
+        await subscribe_conversation(update, context)
     else:
         await text_handler(update, context)
 # ─── Command handlers ─────────────────────────────────────────────────────────
@@ -121,10 +141,176 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/english — Switch to English\n"
         "/fertilizer — 💊 ఎరువు / మందు సలహా\n"
         "/schemes — 🏛️ ప్రభుత్వ పథకాలు\n"
+        "/profile — 👨‍🌾 రైతు వివరాలు సేవ్ చేయండి\n"
+        "/subscribe — 🔔 మీ జిల్లాకు అలర్ట్ పొందండి\n"
+        "/checklist — 🗓️ ఈ వారం వ్యవసాయ కార్యాచరణ\n"
         "/help — సహాయం\n\n"
         "📞 సమస్య వస్తే: @Venuenugula",
         parse_mode="Markdown"
     )
+
+
+async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    profile_state[uid] = {"step": "district", "lang": lang}
+    msg = (
+        "👨‍🌾 *రైతు ప్రొఫైల్ సెటప్*\n\nమీ జిల్లా పేరు చెప్పండి."
+        if lang == "telugu" else
+        "👨‍🌾 *Farmer Profile Setup*\n\nPlease enter your district name."
+    )
+    await update.message.reply_text(msg, parse_mode="Markdown")
+
+
+async def profile_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    text = (update.message.text or "").strip()
+    state = profile_state.get(uid, {})
+    lang = state.get("lang", "telugu")
+    step = state.get("step")
+
+    if step == "district":
+        state["district"] = text
+        state["step"] = "crop"
+        profile_state[uid] = state
+        msg = (
+            "🌾 ప్రధాన పంట పేరు చెప్పండి (ఉదా: వరి, టమాటో)."
+            if lang == "telugu" else
+            "🌾 Enter your primary crop (e.g., rice, tomato)."
+        )
+        await update.message.reply_text(msg)
+        return
+
+    if step == "crop":
+        state["crop"] = text
+        state["step"] = "acres"
+        profile_state[uid] = state
+        msg = (
+            "📐 మీ ఎకరాల సంఖ్య టైప్ చేయండి (ఉదా: 2.5)."
+            if lang == "telugu" else
+            "📐 Enter your land size in acres (e.g., 2.5)."
+        )
+        await update.message.reply_text(msg)
+        return
+
+    if step == "acres":
+        try:
+            acres = float(text)
+        except ValueError:
+            await update.message.reply_text("సంఖ్య మాత్రమే ఇవ్వండి / Please enter a number.")
+            return
+        state["acres"] = acres
+        state["step"] = "irrigation"
+        profile_state[uid] = state
+        msg = (
+            "💧 నీటి వనరు: బోర్‌వెల్ / కాలువ / వర్షాధార / ఇతర"
+            if lang == "telugu" else
+            "💧 Irrigation type: borewell / canal / rainfed / other"
+        )
+        await update.message.reply_text(msg)
+        return
+
+    if step == "irrigation":
+        upsert_farmer_profile(
+            user_id=uid,
+            lang=lang,
+            district=state.get("district"),
+            primary_crop=state.get("crop"),
+            acres=state.get("acres"),
+            irrigation_type=text,
+        )
+        profile_state.pop(uid, None)
+        done = (
+            "✅ మీ ప్రొఫైల్ సేవ్ అయింది."
+            if lang == "telugu" else
+            "✅ Your profile has been saved."
+        )
+        await update.message.reply_text(done)
+
+
+async def subscribe_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    subscribe_state[uid] = {"step": "district", "lang": lang}
+    msg = (
+        "🔔 అలర్ట్ సబ్‌స్క్రిప్షన్ కోసం మీ జిల్లా పేరు చెప్పండి."
+        if lang == "telugu" else
+        "🔔 Enter your district for outbreak subscriptions."
+    )
+    await update.message.reply_text(msg)
+
+
+async def subscribe_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    text = (update.message.text or "").strip()
+    state = subscribe_state.get(uid, {})
+    lang = state.get("lang", "telugu")
+    step = state.get("step")
+
+    if step == "district":
+        state["district"] = text
+        state["step"] = "crop"
+        subscribe_state[uid] = state
+        msg = (
+            "🌾 ఏ పంటకు అలర్ట్ కావాలి?"
+            if lang == "telugu" else
+            "🌾 Which crop should we track alerts for?"
+        )
+        await update.message.reply_text(msg)
+        return
+
+    if step == "crop":
+        add_subscription(uid, state.get("district", ""), text, "outbreak")
+        subscribe_state.pop(uid, None)
+        msg = (
+            f"✅ సబ్‌స్క్రిప్షన్ సేవ్ అయింది: {state.get('district')} / {text}"
+            if lang == "telugu" else
+            f"✅ Subscription saved: {state.get('district')} / {text}"
+        )
+        await update.message.reply_text(msg)
+
+
+async def checklist_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    uid = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    profile = get_farmer_profile(uid)
+    district = profile.get("district", "your district")
+    crop = profile.get("primary_crop", "your crop")
+    acres = profile.get("acres", 0)
+    checklist = (
+        f"🗓️ <b>ఈ వారం చెక్‌లిస్ట్</b>\n\n"
+        f"📍 జిల్లా: {district}\n🌾 పంట: {crop}\n📐 ఎకరాలు: {acres}\n\n"
+        "1) ఉదయం ఆకు మరకలు పరిశీలించండి\n"
+        "2) వర్ష సూచన ఉంటే పిచికారీ ముందుగా ప్లాన్ చేయండి\n"
+        "3) తేమ అధికంగా ఉంటే గాలి ప్రసరణ పెంచండి\n"
+        "4) మండి ధర చెక్ చేసి అమ్మక సమయం నిర్ణయించండి\n"
+        "5) కనీసం 10 మొక్కల ఫోటోలు వారానికి ఒకసారి తీసి సేవ్ చేయండి"
+        if lang == "telugu" else
+        f"🗓️ <b>This Week Checklist</b>\n\n"
+        f"📍 District: {district}\n🌾 Crop: {crop}\n📐 Acres: {acres}\n\n"
+        "1) Inspect leaves each morning for new spots\n"
+        "2) If rain is forecast, plan preventive spray early\n"
+        "3) Improve airflow if humidity remains high\n"
+        "4) Check mandi prices before deciding sell timing\n"
+        "5) Capture weekly photos of at least 10 plants"
+    )
+    await update.message.reply_text(checklist, parse_mode="HTML")
+
+
+async def feedback_callback(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    query = update.callback_query
+    await query.answer()
+    uid = query.from_user.id
+    data = query.data or ""
+    parts = data.split(":")
+    if len(parts) < 3:
+        return
+    request_id = parts[1]
+    helpful = parts[2] == "1"
+    log_feedback(uid, request_id, helpful)
+    msg = "🙏 ధన్యవాదాలు! / Thanks for your feedback."
+    await query.edit_message_reply_markup(reply_markup=None)
+    await query.message.reply_text(msg)
 
 # ─── Photo handler ────────────────────────────────────────────────────────────
 async def photo_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -780,6 +966,14 @@ async def _run_and_reply(
             f"(score: {risk['risk_score']})"
         )
         await update.message.reply_text(conf_text, parse_mode="HTML")
+        fb_keyboard = InlineKeyboardMarkup([[
+            InlineKeyboardButton("👍 Helpful", callback_data=f"fb:{request_id}:1"),
+            InlineKeyboardButton("👎 Not helpful", callback_data=f"fb:{request_id}:0"),
+        ]])
+        await update.message.reply_text(
+            "Was this diagnosis useful? / ఈ సలహా ఉపయోగపడిందా?",
+            reply_markup=fb_keyboard,
+        )
         log_event(
             "pipeline_replied",
             request_id=request_id,

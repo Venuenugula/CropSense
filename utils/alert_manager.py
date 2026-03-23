@@ -2,6 +2,7 @@ import asyncio
 from db.models import (
     get_outbreak_alerts,
     get_district_subscribers,
+    get_subscriptions,
     mark_alert_sent,
     was_alert_sent_recently,
 )
@@ -46,8 +47,12 @@ async def send_community_alerts(bot):
         if was_alert_sent_recently(disease_key, location_name):
             continue
 
-        # Get subscribers in that district
-        subscribers = get_district_subscribers(location_name)
+        # Get subscribers in that district (legacy + explicit subscriptions)
+        subscribers = set(get_district_subscribers(location_name))
+        for sub in get_subscriptions():
+            if location_name.lower().split(",")[0].strip() in (sub.get("district") or "").lower():
+                subscribers.add(sub.get("user_id"))
+        subscribers = [s for s in subscribers if s]
         if not subscribers:
             continue
 

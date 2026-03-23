@@ -3,6 +3,7 @@ from utils.alert_manager import send_community_alerts
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    CallbackQueryHandler,
     MessageHandler,
     filters,
 )
@@ -12,7 +13,9 @@ from bot.handlers import (
     photo_handler, location_handler, voice_handler, text_handler,
     fertilizer_command, fertilizer_conversation, fertilizer_state,
     schemes_command, schemes_conversation, scheme_state,
-    route_text,calendar_command, calendar_conversation, calendar_state,alerts_command,price_command, price_conversation, price_state,
+    route_text, calendar_command, calendar_conversation, calendar_state,
+    alerts_command, price_command, price_conversation, price_state,
+    profile_command, subscribe_command, checklist_command, feedback_callback,
 )
 from dotenv import load_dotenv
 import os, logging
@@ -51,6 +54,9 @@ async def post_init(application):
         BotCommand("alerts", "🚨 వ్యాధి వ్యాప్తి నివేదిక"),
         BotCommand("price",  "💰 మండి ధరలు"),
         BotCommand("dhara",  "💰 పంట ధర చూడండి"),
+        BotCommand("profile", "👨‍🌾 రైతు ప్రొఫైల్ / Farmer profile"),
+        BotCommand("subscribe", "🔔 ప్రాంతీయ హెచ్చరిక సబ్‌స్క్రిప్షన్"),
+        BotCommand("checklist", "🗓️ వారపు వ్యవసాయ కార్యాచరణ"),
         BotCommand("help",       "సహాయం / Help"),
     ])
     logger.info("Bot commands set successfully.")
@@ -96,7 +102,10 @@ def main():
     application.add_handler(CommandHandler("panchanga", calendar_command))
     application.add_handler(CommandHandler("alerts",  alerts_command))
     application.add_handler(CommandHandler("price",   price_command))
-    application.add_handler(CommandHandler("dhara",   price_command)) 
+    application.add_handler(CommandHandler("dhara",   price_command))
+    application.add_handler(CommandHandler("profile", profile_command))
+    application.add_handler(CommandHandler("subscribe", subscribe_command))
+    application.add_handler(CommandHandler("checklist", checklist_command))
 
     # Messages
     application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
@@ -106,6 +115,7 @@ def main():
         filters.TEXT & ~filters.COMMAND,
         route_text
     ))
+    application.add_handler(CallbackQueryHandler(feedback_callback, pattern=r"^fb:"))
 
     # Error handler
     application.add_error_handler(error_handler)
