@@ -16,14 +16,17 @@ from utils.scheme_advisor import (
 from utils.mandi_prices import (
     fetch_mandi_prices, format_price_response, find_crop_name
 )
+from utils.state_store import create_state_store
 import re
 import io
 import asyncio
 
 # ─── State stores ─────────────────────────────────────────────────────────────
-user_state       = {}
-fertilizer_state = {}
-scheme_state     = {}
+user_state = create_state_store("user_state")
+fertilizer_state = create_state_store("fertilizer_state")
+scheme_state = create_state_store("scheme_state")
+calendar_state = create_state_store("calendar_state")
+price_state = create_state_store("price_state")
 
 # ─── Helpers ──────────────────────────────────────────────────────────────────
 def lang_keyboard():
@@ -190,7 +193,11 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     try:
         whisper_lang = "te" if lang == "telugu" else "en"
-        transcribed  = transcribe_audio(audio_bytes, language=whisper_lang)
+        transcribed = await asyncio.to_thread(
+            transcribe_audio,
+            audio_bytes,
+            whisper_lang,
+        )
 
         if not transcribed:
             await processing_msg.delete()
@@ -281,8 +288,6 @@ Answer in simple {lang} language. Max 4-5 sentences. Conversational tone.
             parse_mode="HTML"
         )
 # ─── Calendar handlers ────────────────────────────────────────────────────────
-calendar_state = {}
-
 async def calendar_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid  = update.effective_user.id
     lang = user_state.get(uid, {}).get("lang", "telugu")
@@ -369,7 +374,9 @@ async def calendar_conversation(update: Update, context: ContextTypes.DEFAULT_TY
             reply_markup=ReplyKeyboardRemove()
         )
 
-        response = generate_calendar_response(crop_name, crop_data, lang)
+        response = await asyncio.to_thread(
+            generate_calendar_response, crop_name, crop_data, lang
+        )
         await processing.delete()
         await send_long_message(update.message, html(response))
 
@@ -384,8 +391,6 @@ async def calendar_conversation(update: Update, context: ContextTypes.DEFAULT_TY
         except Exception as e:
             print(f"Calendar audio failed: {e}")
 # ─── Mandi price state ────────────────────────────────────────────────────────
-price_state = {}
-
 async def price_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid  = update.effective_user.id
     lang = user_state.get(uid, {}).get("lang", "telugu")
@@ -432,7 +437,7 @@ async def price_conversation(update: Update, context: ContextTypes.DEFAULT_TYPE)
             reply_markup=ReplyKeyboardRemove()
         )
 
-        records, date, crop_name = fetch_mandi_prices(text)
+        records, date, crop_name = await asyncio.to_thread(fetch_mandi_prices, text)
         response = format_price_response(records, text, crop_name, date, lang)
 
         await processing.delete()
@@ -539,7 +544,7 @@ async def fertilizer_conversation(update: Update, context: ContextTypes.DEFAULT_
         else:
             fertilizer_state.pop(uid, None)
             processing = await update.message.reply_text("🔍 వెతుకుతున్నాం... / Searching...")
-            response   = handle_unknown_product(text, lang)
+            response = await asyncio.to_thread(handle_unknown_product, text, lang)
             await processing.delete()
             await send_long_message(update.message, html(response))
             try:
@@ -610,7 +615,8 @@ async def fertilizer_conversation(update: Update, context: ContextTypes.DEFAULT_
             "⏳ మోతాదు లెక్కిస్తున్నాం... / Calculating dosage...",
             reply_markup=ReplyKeyboardRemove()
         )
-        response = generate_fertilizer_response(
+        response = await asyncio.to_thread(
+            generate_fertilizer_response,
             product_name=state["product_name"],
             product_data=state["product_data"],
             crop=state["crop"],
@@ -683,11 +689,18 @@ async def schemes_conversation(update: Update, context: ContextTypes.DEFAULT_TYP
             "Searching schemes + fetching latest updates... ⏳"
         )
 
-        schemes     = find_relevant_schemes(crop=crop, district=district)
-        latest_info = search_latest_schemes()
-        response    = generate_schemes_response(
-            schemes=schemes, crop=crop, district=district,
-            lang=lang, latest_info=latest_info,
+        schemes_task = asyncio.to_thread(
+            find_relevant_schemes, crop=crop, district=district
+        )
+        latest_task = asyncio.to_thread(search_latest_schemes)
+        schemes, latest_info = await asyncio.gather(schemes_task, latest_task)
+        response = await asyncio.to_thread(
+            generate_schemes_response,
+            schemes=schemes,
+            crop=crop,
+            district=district,
+            lang=lang,
+            latest_info=latest_info,
         )
 
         await processing.delete()
