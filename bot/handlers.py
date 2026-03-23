@@ -18,6 +18,7 @@ from utils.mandi_prices import (
 )
 import re
 import io
+import asyncio
 
 # ─── State stores ─────────────────────────────────────────────────────────────
 user_state       = {}
@@ -242,7 +243,22 @@ async def voice_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 వ్యవసాయ నిపుణుడిగా సులభంగా సమాధానం ఇవ్వండి.
 Answer in simple {lang} language. Max 4-5 sentences. Conversational tone.
 """
-        response = call_gemini(prompt)
+        try:
+            response = await asyncio.wait_for(
+                asyncio.to_thread(call_gemini, prompt),
+                timeout=25,
+            )
+        except asyncio.TimeoutError:
+            await processing_msg.delete()
+            fallback = (
+                "⏳ సమాధానం రావడానికి ఎక్కువ సమయం పడుతోంది.\n"
+                "దయచేసి ఇంకోసారి చిన్న ప్రశ్నగా అడగండి."
+                if lang == "telugu" else
+                "⏳ The answer is taking too long.\n"
+                "Please try again with a shorter question."
+            )
+            await update.message.reply_text(fallback)
+            return
         await processing_msg.delete()
 
         await send_long_message(
@@ -701,9 +717,14 @@ async def _run_and_reply(
     )
 
     try:
-        result = run_pipeline(
+        # Offload heavy sync pipeline work so the bot event loop stays responsive.
+        result = await asyncio.to_thread(
+            run_pipeline,
             image_bytes=state["img_bytes"],
-            lat=lat, lon=lon, lang=lang, user_id=uid,
+            lat=lat,
+            lon=lon,
+            lang=lang,
+            user_id=uid,
         )
         await processing_msg.delete()
 
