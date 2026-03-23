@@ -3,7 +3,9 @@ from langchain_community.vectorstores import FAISS
 from langchain.embeddings.base import Embeddings
 from langchain_core.documents import Document
 from sentence_transformers import SentenceTransformer
-import json, os, pickle
+import hashlib
+import json
+import os
 
 KB_PATH    = "rag/knowledge_base/diseases.json"
 FAISS_PATH = "rag/faiss_index"
@@ -42,6 +44,14 @@ Spread conditions: {', '.join(info['spread_conditions']) if info['spread_conditi
         ))
     return docs
 
+
+def _sha256_file(path: str) -> str:
+    h = hashlib.sha256()
+    with open(path, "rb") as f:
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
+            h.update(chunk)
+    return h.hexdigest()
+
 print("Loading knowledge base...")
 with open(KB_PATH) as f:
     kb = json.load(f)
@@ -56,5 +66,23 @@ vectorstore = FAISS.from_documents(docs, embeddings)
 
 os.makedirs(FAISS_PATH, exist_ok=True)
 vectorstore.save_local(FAISS_PATH)
+
+# Security artifacts for safe FAISS loading (no pickle deserialization required).
+meta_path = os.path.join(FAISS_PATH, "metadata.json")
+records = [doc.metadata for doc in docs]
+with open(meta_path, "w", encoding="utf-8") as f:
+    json.dump({"records": records}, f, ensure_ascii=False, indent=2)
+
+index_path = os.path.join(FAISS_PATH, "index.faiss")
+checksums = {
+    "algorithm": "sha256",
+    "files": {
+        "index.faiss": _sha256_file(index_path),
+        "metadata.json": _sha256_file(meta_path),
+    },
+}
+with open(os.path.join(FAISS_PATH, "checksums.json"), "w", encoding="utf-8") as f:
+    json.dump(checksums, f, ensure_ascii=False, indent=2)
+
 print(f"FAISS index saved to {FAISS_PATH}")
 print("Knowledge base built successfully!")

@@ -24,3 +24,4 @@ xgboost
 gTTS
 edge-tts
 groq
+pytest

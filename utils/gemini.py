@@ -13,7 +13,7 @@ def get_api_key():
         return os.getenv("GEMINI_API_KEY")
 
 MODEL = "gemini-2.5-flash"  # or latest supported
-_client = genai.Client(api_key=get_api_key())
+_client = None
 REQUEST_TIMEOUT_SECONDS = 25
 FALLBACK_RESPONSE = (
     "⚠️ AI service is temporarily slow. "
@@ -25,6 +25,10 @@ def call_gemini(
     retries: int = 3,
     timeout_seconds: int = REQUEST_TIMEOUT_SECONDS,
 ) -> str:
+    global _client
+    if _client is None:
+        _client = genai.Client(api_key=get_api_key())
+
     last_error = None
     for attempt in range(retries):
         try:
