@@ -1,0 +1,182 @@
+{
+  "Mancozeb": {
+    "telugu_name": "మాంకోజెబ్",
+    "type": "Fungicide",
+    "target_diseases": ["Early blight", "Late blight", "Leaf spot", "Downy mildew", "Apple scab"],
+    "target_crops": ["Tomato", "Potato", "Grape", "Apple", "Onion", "Chilli"],
+    "mixing_ratio": {
+      "mild":   {"grams_per_liter": 2.0, "liters_per_acre": 200},
+      "medium": {"grams_per_liter": 2.5, "liters_per_acre": 200},
+      "severe": {"grams_per_liter": 3.0, "liters_per_acre": 250}
+    },
+    "application_time": "Early morning 6-9 AM or evening 4-7 PM",
+    "frequency": "Every 7-10 days",
+    "rain_advice": "Do not spray if rain expected within 4 hours. Re-spray after heavy rain.",
+    "harvest_waiting_days": 7,
+    "do_not_mix_with": ["Copper sulphate", "Alkaline pesticides"],
+    "safety": "Wear gloves and mask. Wash hands after use. Keep away from children.",
+    "available_brands": ["Dithane M-45", "Indofil M-45", "Mancozeb 75 WP"]
+  },
+  "Carbendazim": {
+    "telugu_name": "కార్బెండజిమ్",
+    "type": "Fungicide",
+    "target_diseases": ["Powdery mildew", "Leaf spot", "Blight", "Anthracnose"],
+    "target_crops": ["Tomato", "Chilli", "Grape", "Apple", "Wheat"],
+    "mixing_ratio": {
+      "mild":   {"grams_per_liter": 0.5, "liters_per_acre": 200},
+      "medium": {"grams_per_liter": 1.0, "liters_per_acre": 200},
+      "severe": {"grams_per_liter": 1.5, "liters_per_acre": 200}
+    },
+    "application_time": "Early morning or evening",
+    "frequency": "Every 10-14 days",
+    "rain_advice": "Wait 6 hours after spraying before rain.",
+    "harvest_waiting_days": 14,
+    "do_not_mix_with": ["Copper-based fungicides", "Alkaline compounds"],
+    "safety": "Avoid contact with eyes. Wear protective clothing.",
+    "available_brands": ["Bavistin", "Carbendazim 50 WP", "Derosal"]
+  },
+  "Imidacloprid": {
+    "telugu_name": "ఇమిడాక్లోప్రిడ్",
+    "type": "Insecticide",
+    "target_diseases": ["Whitefly", "Aphids", "Thrips", "Jassids", "Mealybug"],
+    "target_crops": ["Tomato", "Cotton", "Chilli", "Potato", "Rice"],
+    "mixing_ratio": {
+      "mild":   {"ml_per_liter": 0.3, "liters_per_acre": 200},
+      "medium": {"ml_per_liter": 0.5, "liters_per_acre": 200},
+      "severe": {"ml_per_liter": 0.7, "liters_per_acre": 250}
+    },
+    "application_time": "Evening 4-7 PM — avoid bees during daytime",
+    "frequency": "Every 15-20 days. Maximum 2 sprays per season.",
+    "rain_advice": "Wait 8 hours after spraying.",
+    "harvest_waiting_days": 21,
+    "do_not_mix_with": ["Dimethoate", "Organophosphates"],
+    "safety": "Highly toxic to bees. Do not spray on flowering crops. Wear full protective gear.",
+    "available_brands": ["Confidor", "Admire", "Imidacloprid 17.8 SL"]
+  },
+  "Copper Oxychloride": {
+    "telugu_name": "కాపర్ ఆక్సీక్లోరైడ్",
+    "type": "Fungicide + Bactericide",
+    "target_diseases": ["Bacterial blight", "Bacterial spot", "Downy mildew", "Leaf curl"],
+    "target_crops": ["Tomato", "Pepper", "Potato", "Grapes", "Citrus"],
+    "mixing_ratio": {
+      "mild":   {"grams_per_liter": 2.0, "liters_per_acre": 200},
+      "medium": {"grams_per_liter": 3.0, "liters_per_acre": 200},
+      "severe": {"grams_per_liter": 4.0, "liters_per_acre": 250}
+    },
+    "application_time": "Early morning or evening. Avoid hot afternoon.",
+    "frequency": "Every 10-14 days",
+    "rain_advice": "Do not spray if rain expected in 2 hours.",
+    "harvest_waiting_days": 10,
+    "do_not_mix_with": ["Mancozeb", "Alkaline pesticides", "Lime"],
+    "safety": "Toxic to fish. Do not spray near water bodies. Wear gloves.",
+    "available_brands": ["Blitox", "Fytolan", "Copper Oxychloride 50 WP"]
+  },
+  "Propiconazole": {
+    "telugu_name": "ప్రొపికొనజోల్",
+    "type": "Fungicide",
+    "target_diseases": ["Rust", "Leaf spot", "Blast", "Sheath blight"],
+    "target_crops": ["Rice", "Wheat", "Maize", "Sorghum", "Groundnut"],
+    "mixing_ratio": {
+      "mild":   {"ml_per_liter": 0.5, "liters_per_acre": 200},
+      "medium": {"ml_per_liter": 1.0, "liters_per_acre": 200},
+      "severe": {"ml_per_liter": 1.5, "liters_per_acre": 200}
+    },
+    "application_time": "Early morning 6-9 AM",
+    "frequency": "Every 14-21 days",
+    "rain_advice": "Wait 4 hours after spraying.",
+    "harvest_waiting_days": 21,
+    "do_not_mix_with": ["Emulsifiable concentrate pesticides"],
+    "safety": "Harmful if swallowed. Wear protective gear.",
+    "available_brands": ["Tilt", "Bumper", "Propiconazole 25 EC"]
+  },
+  "Urea": {
+    "telugu_name": "యూరియా",
+    "type": "Fertilizer — Nitrogen",
+    "target_diseases": ["Nitrogen deficiency — yellowing of leaves"],
+    "target_crops": ["Rice", "Wheat", "Maize", "Sugarcane", "Cotton", "Vegetables"],
+    "mixing_ratio": {
+      "mild":   {"kg_per_acre": 10, "application": "Soil application"},
+      "medium": {"kg_per_acre": 20, "application": "Soil application"},
+      "severe": {"kg_per_acre": 25, "application": "Split — 2 doses"}
+    },
+    "application_time": "Early morning. Apply when soil is moist.",
+    "frequency": "Split into 2-3 doses during crop season",
+    "rain_advice": "Apply before light rain for best absorption. Avoid waterlogged conditions.",
+    "harvest_waiting_days": 0,
+    "do_not_mix_with": ["Superphosphate directly", "Zinc sulphate"],
+    "safety": "Keep dry. Store away from moisture. Non-toxic but avoid inhalation.",
+    "available_brands": ["IFFCO Urea", "NFL Urea", "Kisan Urea"]
+  },
+  "DAP": {
+    "telugu_name": "డీఏపీ (డైఅమ్మోనియం ఫాస్ఫేట్)",
+    "type": "Fertilizer — Nitrogen + Phosphorus",
+    "target_diseases": ["Phosphorus deficiency — purple/red leaves", "Poor root development"],
+    "target_crops": ["Rice", "Wheat", "Cotton", "Vegetables", "Pulses"],
+    "mixing_ratio": {
+      "mild":   {"kg_per_acre": 12, "application": "Basal soil application"},
+      "medium": {"kg_per_acre": 20, "application": "Basal soil application"},
+      "severe": {"kg_per_acre": 25, "application": "Basal + top dress"}
+    },
+    "application_time": "Apply at sowing/planting time as basal dose",
+    "frequency": "Once per season as basal dose",
+    "rain_advice": "Apply before sowing. Light irrigation helps absorption.",
+    "harvest_waiting_days": 0,
+    "do_not_mix_with": ["Urea directly", "Potash in same application"],
+    "safety": "Non-toxic. Store in cool dry place.",
+    "available_brands": ["IFFCO DAP", "Zuari DAP", "Coromandel DAP"]
+  },
+  "Chlorpyrifos": {
+    "telugu_name": "క్లోర్‌పైరిఫాస్",
+    "type": "Insecticide",
+    "target_diseases": ["Stem borer", "Root grub", "Termites", "Cutworm", "Bollworm"],
+    "target_crops": ["Rice", "Cotton", "Maize", "Sugarcane", "Vegetables"],
+    "mixing_ratio": {
+      "mild":   {"ml_per_liter": 1.5, "liters_per_acre": 200},
+      "medium": {"ml_per_liter": 2.0, "liters_per_acre": 200},
+      "severe": {"ml_per_liter": 2.5, "liters_per_acre": 250}
+    },
+    "application_time": "Evening 4-7 PM",
+    "frequency": "Every 15-20 days. Maximum 2 times per season.",
+    "rain_advice": "Wait 24 hours after spraying.",
+    "harvest_waiting_days": 28,
+    "do_not_mix_with": ["Alkaline pesticides", "Bordeaux mixture"],
+    "safety": "Highly toxic. Full protective gear mandatory. Keep away from water bodies and livestock.",
+    "available_brands": ["Dursban", "Radar", "Chlorpyrifos 20 EC"]
+  },
+  "Neem Oil": {
+    "telugu_name": "వేప నూనె",
+    "type": "Bio-pesticide — Organic",
+    "target_diseases": ["Whitefly", "Aphids", "Mites", "Powdery mildew", "Leaf miner"],
+    "target_crops": ["All crops — safe for organic farming"],
+    "mixing_ratio": {
+      "mild":   {"ml_per_liter": 3.0, "liters_per_acre": 200},
+      "medium": {"ml_per_liter": 5.0, "liters_per_acre": 200},
+      "severe": {"ml_per_liter": 7.0, "liters_per_acre": 200}
+    },
+    "application_time": "Evening only — sunlight degrades neem oil",
+    "frequency": "Every 7 days",
+    "rain_advice": "Re-spray after rain as it washes off easily.",
+    "harvest_waiting_days": 0,
+    "do_not_mix_with": ["Chemical pesticides in same spray"],
+    "safety": "Completely safe for humans, animals, and bees. Organic approved.",
+    "available_brands": ["Econeem", "Fortune Neem Oil", "Dhanuka Neem"]
+  },
+  "Metalaxyl": {
+    "telugu_name": "మెటాలాక్సిల్",
+    "type": "Fungicide — Systemic",
+    "target_diseases": ["Late blight", "Downy mildew", "Damping off"],
+    "target_crops": ["Potato", "Tomato", "Grape", "Onion", "Sorghum"],
+    "mixing_ratio": {
+      "mild":   {"grams_per_liter": 1.5, "liters_per_acre": 200},
+      "medium": {"grams_per_liter": 2.0, "liters_per_acre": 200},
+      "severe": {"grams_per_liter": 2.5, "liters_per_acre": 250}
+    },
+    "application_time": "Early morning or evening",
+    "frequency": "Every 10-14 days. Maximum 3 times per season to avoid resistance.",
+    "rain_advice": "Systemic — rain after 2 hours does not affect efficacy.",
+    "harvest_waiting_days": 14,
+    "do_not_mix_with": ["Copper-based fungicides"],
+    "safety": "Wear protective clothing. Wash thoroughly after use.",
+    "available_brands": ["Ridomil", "Apron", "Metalaxyl + Mancozeb 72 WP"]
+  }
+}

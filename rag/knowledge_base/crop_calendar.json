@@ -1,0 +1,341 @@
+{
+  "Rice": {
+    "telugu_name": "వరి",
+    "seasons": {
+      "Kharif": {
+        "telugu_season": "ఖరీఫ్ (వర్షాకాలం)",
+        "sowing_months": "June - July",
+        "harvest_months": "October - November",
+        "duration_days": 120,
+        "schedule": {
+          "June": {
+            "activities": ["Nursery preparation", "Seed treatment with Bavistin 2g/kg"],
+            "fertilizer": "Apply FYM 5 tons/acre to nursery bed",
+            "irrigation": "Keep nursery moist — water daily",
+            "scouting": "Watch for stem borer in nursery"
+          },
+          "July": {
+            "activities": ["Transplanting 21-day old seedlings", "Field preparation with puddling"],
+            "fertilizer": "Basal dose: DAP 50kg/acre + MOP 25kg/acre",
+            "irrigation": "Maintain 5cm standing water after transplanting",
+            "scouting": "Watch for leaf folder and brown plant hopper"
+          },
+          "August": {
+            "activities": ["Gap filling", "Weeding at 20-25 days after transplanting"],
+            "fertilizer": "Top dress: Urea 25kg/acre at tillering stage",
+            "irrigation": "Maintain 5cm water — drain before weeding",
+            "scouting": "Scout for blast disease, BPH, stem borer weekly"
+          },
+          "September": {
+            "activities": ["Second top dressing", "Spray for pests if needed"],
+            "fertilizer": "Urea 25kg/acre at panicle initiation stage",
+            "irrigation": "Critical irrigation at flowering — do not stress",
+            "scouting": "Watch for neck blast, sheath blight, white backed plant hopper"
+          },
+          "October": {
+            "activities": ["Stop irrigation 10 days before harvest", "Arrange harvesting machinery"],
+            "fertilizer": "No fertilizer — final stage",
+            "irrigation": "Drain fields 10 days before harvest",
+            "scouting": "Watch for grain discoloration and false smut"
+          },
+          "November": {
+            "activities": ["Harvesting", "Threshing", "Drying and storage"],
+            "fertilizer": "None",
+            "irrigation": "None — field drained",
+            "scouting": "Check grain moisture before storage — should be below 14%"
+          }
+        }
+      },
+      "Rabi": {
+        "telugu_season": "రబీ (శీతాకాలం)",
+        "sowing_months": "November - December",
+        "harvest_months": "March - April",
+        "duration_days": 115,
+        "schedule": {
+          "November": {
+            "activities": ["Nursery preparation for Rabi", "Field preparation"],
+            "fertilizer": "FYM 5 tons/acre as basal",
+            "irrigation": "Nursery irrigation daily",
+            "scouting": "Check for tungro virus in nursery"
+          },
+          "December": {
+            "activities": ["Transplanting", "Gap filling"],
+            "fertilizer": "DAP 50kg/acre + MOP 20kg/acre basal",
+            "irrigation": "Maintain 3-5cm standing water",
+            "scouting": "Watch for cold stress symptoms"
+          },
+          "January": {
+            "activities": ["Weeding", "First top dressing"],
+            "fertilizer": "Urea 25kg/acre",
+            "irrigation": "Regular irrigation — critical in cold",
+            "scouting": "Scout for leaf blast and stem borer"
+          },
+          "February": {
+            "activities": ["Second top dressing", "Panicle emergence stage management"],
+            "fertilizer": "Urea 25kg/acre",
+            "irrigation": "Do not stress at flowering",
+            "scouting": "Watch for neck blast and sheath blight"
+          },
+          "March": {
+            "activities": ["Stop irrigation", "Pre-harvest scouting"],
+            "fertilizer": "None",
+            "irrigation": "Drain 10 days before harvest",
+            "scouting": "False smut, grain discoloration"
+          },
+          "April": {
+            "activities": ["Harvest", "Threshing", "Storage"],
+            "fertilizer": "None",
+            "irrigation": "None",
+            "scouting": "Grain moisture check before storage"
+          }
+        }
+      }
+    }
+  },
+  "Tomato": {
+    "telugu_name": "టమాటో",
+    "seasons": {
+      "Kharif": {
+        "telugu_season": "ఖరీఫ్",
+        "sowing_months": "June - July",
+        "harvest_months": "September - November",
+        "duration_days": 90,
+        "schedule": {
+          "June": {
+            "activities": ["Nursery raising", "Seed treatment", "Bed preparation"],
+            "fertilizer": "FYM 10 tons/acre in main field",
+            "irrigation": "Nursery watering twice daily",
+            "scouting": "Damping off in nursery — apply Captan"
+          },
+          "July": {
+            "activities": ["Transplanting 25-day seedlings", "Staking poles"],
+            "fertilizer": "DAP 50kg + MOP 25kg/acre as basal",
+            "irrigation": "Drip or furrow — critical establishment",
+            "scouting": "Early blight, leaf curl virus, whitefly"
+          },
+          "August": {
+            "activities": ["Training and pruning", "Spray for pest control"],
+            "fertilizer": "Urea 25kg/acre + water soluble fertilizer via drip",
+            "irrigation": "Regular — do not stress",
+            "scouting": "Late blight, septoria leaf spot, fruit borer"
+          },
+          "September": {
+            "activities": ["First harvest", "Continue staking", "Spray schedule"],
+            "fertilizer": "Foliar spray of 00:52:34 @ 5g/L for fruit setting",
+            "irrigation": "Regular — critical at fruit development",
+            "scouting": "Fruit borer, TLCV, mites — weekly scouting"
+          },
+          "October": {
+            "activities": ["Peak harvest", "Grading and marketing"],
+            "fertilizer": "Potassium nitrate spray @ 1% for quality",
+            "irrigation": "Reduce slightly to improve fruit quality",
+            "scouting": "Post-harvest diseases in storage"
+          },
+          "November": {
+            "activities": ["Final harvest", "Field clearance", "Next crop planning"],
+            "fertilizer": "None",
+            "irrigation": "Minimal",
+            "scouting": "Final check for lingering diseases"
+          }
+        }
+      },
+      "Rabi": {
+        "telugu_season": "రబీ",
+        "sowing_months": "October - November",
+        "harvest_months": "January - March",
+        "duration_days": 90,
+        "schedule": {
+          "October": {
+            "activities": ["Nursery raising", "Field preparation"],
+            "fertilizer": "FYM 10 tons/acre",
+            "irrigation": "Nursery watering twice daily",
+            "scouting": "Aphids in nursery"
+          },
+          "November": {
+            "activities": ["Transplanting", "Mulching to conserve moisture"],
+            "fertilizer": "DAP 50kg + MOP 25kg/acre",
+            "irrigation": "Drip irrigation — 4-5 litres/plant/day",
+            "scouting": "TLCV, early blight"
+          },
+          "December": {
+            "activities": ["Training", "Pruning suckers"],
+            "fertilizer": "19:19:19 water soluble @ 3kg/acre via drip",
+            "irrigation": "Regular drip",
+            "scouting": "Mites, thrips in cool weather"
+          },
+          "January": {
+            "activities": ["Flowering and fruit set", "First harvest"],
+            "fertilizer": "00:52:34 @ 3kg/acre for fruit set",
+            "irrigation": "Critical at flowering — do not stress",
+            "scouting": "Botrytis in cold foggy weather"
+          },
+          "February": {
+            "activities": ["Peak harvest", "Grading and marketing"],
+            "fertilizer": "Potassium spray for quality",
+            "irrigation": "Regular",
+            "scouting": "Fruit cracking if rains come"
+          },
+          "March": {
+            "activities": ["Final harvest", "Field clearance"],
+            "fertilizer": "None",
+            "irrigation": "Reduce",
+            "scouting": "Final harvest check"
+          }
+        }
+      }
+    }
+  },
+  "Maize": {
+    "telugu_name": "మొక్కజొన్న",
+    "seasons": {
+      "Kharif": {
+        "telugu_season": "ఖరీఫ్",
+        "sowing_months": "June - July",
+        "harvest_months": "September - October",
+        "duration_days": 100,
+        "schedule": {
+          "June": {
+            "activities": ["Seed treatment", "Sowing at 60x20cm spacing"],
+            "fertilizer": "FYM 5 tons + DAP 75kg + MOP 40kg/acre basal",
+            "irrigation": "First irrigation immediately after sowing",
+            "scouting": "Termite damage at germination"
+          },
+          "July": {
+            "activities": ["Thinning to one plant per hill", "First weeding"],
+            "fertilizer": "Urea 35kg/acre at knee height stage",
+            "irrigation": "Every 7-10 days",
+            "scouting": "Fall armyworm — check whorl weekly"
+          },
+          "August": {
+            "activities": ["Earthing up", "Second weeding"],
+            "fertilizer": "Urea 35kg/acre at tasseling",
+            "irrigation": "Critical at tasseling and silking — do not miss",
+            "scouting": "Fall armyworm, leaf blight, rust"
+          },
+          "September": {
+            "activities": ["Grain development stage", "Reduce irrigation"],
+            "fertilizer": "None",
+            "irrigation": "Reduce — only if needed",
+            "scouting": "Grain borer, ear rot"
+          },
+          "October": {
+            "activities": ["Harvest at 30% grain moisture", "Drying and shelling"],
+            "fertilizer": "None",
+            "irrigation": "None",
+            "scouting": "Aflatoxin risk in storage — dry below 13% moisture"
+          }
+        }
+      }
+    }
+  },
+  "Cotton": {
+    "telugu_name": "పత్తి",
+    "seasons": {
+      "Kharif": {
+        "telugu_season": "ఖరీఫ్",
+        "sowing_months": "May - June",
+        "harvest_months": "November - January",
+        "duration_days": 180,
+        "schedule": {
+          "May": {
+            "activities": ["Field preparation", "Soil testing", "Seed procurement"],
+            "fertilizer": "FYM 5 tons/acre + DAP 50kg + MOP 25kg basal",
+            "irrigation": "Pre-sowing irrigation if needed",
+            "scouting": "Check for termites before sowing"
+          },
+          "June": {
+            "activities": ["Sowing Bt cotton at 3x1.5 feet spacing", "Gap filling at 15 days"],
+            "fertilizer": "None — basal already applied",
+            "irrigation": "First irrigation 7 days after sowing",
+            "scouting": "Thrips on cotyledon leaves"
+          },
+          "July": {
+            "activities": ["First weeding", "Spray for sucking pests"],
+            "fertilizer": "Urea 25kg/acre at 30 days",
+            "irrigation": "Every 10-12 days",
+            "scouting": "Jassids, thrips, mites — weekly check"
+          },
+          "August": {
+            "activities": ["Square and bud formation", "Spray neem oil preventively"],
+            "fertilizer": "Urea 25kg/acre at 60 days",
+            "irrigation": "Critical at squaring — do not stress",
+            "scouting": "Bollworm eggs on leaves, spotted bollworm"
+          },
+          "September": {
+            "activities": ["Flowering and boll formation", "Defoliant spray if needed"],
+            "fertilizer": "Potassium nitrate foliar spray",
+            "irrigation": "Critical at boll development",
+            "scouting": "Pink bollworm, boll rot, bacterial blight"
+          },
+          "October": {
+            "activities": ["First picking", "Arrange labour for picking"],
+            "fertilizer": "None",
+            "irrigation": "Reduce",
+            "scouting": "Mealy bug, boll weevil"
+          },
+          "November": {
+            "activities": ["Second picking", "Grading cotton"],
+            "fertilizer": "None",
+            "irrigation": "Minimal",
+            "scouting": "Post-harvest mealy bug management"
+          },
+          "December": {
+            "activities": ["Third picking", "Marketing"],
+            "fertilizer": "None",
+            "irrigation": "None",
+            "scouting": "Final quality check"
+          },
+          "January": {
+            "activities": ["Final picking", "Field clearance", "Stubble destruction"],
+            "fertilizer": "None",
+            "irrigation": "None",
+            "scouting": "Destroy stubble to kill overwintering pests"
+          }
+        }
+      }
+    }
+  },
+  "Groundnut": {
+    "telugu_name": "వేరుశెనగ",
+    "seasons": {
+      "Kharif": {
+        "telugu_season": "ఖరీఫ్",
+        "sowing_months": "June - July",
+        "harvest_months": "September - October",
+        "duration_days": 105,
+        "schedule": {
+          "June": {
+            "activities": ["Seed treatment with Thiram + Rhizobium", "Sowing at 30x10cm"],
+            "fertilizer": "DAP 50kg + SSP 100kg/acre basal",
+            "irrigation": "First irrigation at sowing if dry",
+            "scouting": "Collar rot at germination"
+          },
+          "July": {
+            "activities": ["Weeding at 20 and 40 days", "Earthing up"],
+            "fertilizer": "Gypsum 100kg/acre at pegging stage — very important",
+            "irrigation": "Every 10 days — critical at pegging",
+            "scouting": "Leaf miner, thrips, tikka disease"
+          },
+          "August": {
+            "activities": ["Pod development", "Avoid waterlogging"],
+            "fertilizer": "Borax spray 0.1% at flowering for pod fill",
+            "irrigation": "Critical at pod filling — do not stress",
+            "scouting": "Late leaf spot, rust, stem rot"
+          },
+          "September": {
+            "activities": ["Maturity assessment", "Harvesting"],
+            "fertilizer": "None",
+            "irrigation": "Stop irrigation 15 days before harvest",
+            "scouting": "Check pod maturity — dark inner shell = ready"
+          },
+          "October": {
+            "activities": ["Drying", "Shelling", "Storage"],
+            "fertilizer": "None",
+            "irrigation": "None",
+            "scouting": "Aflatoxin risk — dry below 9% moisture"
+          }
+        }
+      }
+    }
+  }
+}

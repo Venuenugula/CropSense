@@ -13,6 +13,8 @@ langchain-community
 faiss-cpu
 sentence-transformers
 google-genai
+google-generativeai
+python-telegram-bot[job-queue]
 python-telegram-bot
 python-dotenv
 psycopg2-binary
@@ -20,3 +22,9 @@ streamlit
 plotly
 requests
 xgboost
+gTTS
+edge-tts
+groq
+pytest
+redis
+

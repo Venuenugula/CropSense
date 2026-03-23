@@ -1,18 +1,21 @@
+from utils.alert_manager import send_community_alerts
+
 from telegram.ext import (
     ApplicationBuilder,
     CommandHandler,
+    CallbackQueryHandler,
     MessageHandler,
     filters,
 )
 from telegram import BotCommand
 from bot.handlers import (
-    start,
-    set_telugu,
-    set_english,
-    help_command,
-    photo_handler,
-    location_handler,
-    text_handler,
+    start, set_telugu, set_english, help_command,
+    photo_handler, location_handler, voice_handler, text_handler,
+    fertilizer_command, fertilizer_conversation, fertilizer_state,
+    schemes_command, schemes_conversation, scheme_state,
+    route_text, calendar_command, calendar_conversation, calendar_state,
+    alerts_command, price_command, price_conversation, price_state,
+    profile_command, subscribe_command, checklist_command, feedback_callback,
 )
 from dotenv import load_dotenv
 import os, logging
@@ -27,15 +30,49 @@ logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
 
-async def post_init(app):
-    """Set bot command menu shown to users."""
-    await app.bot.set_my_commands([
-        BotCommand("start",   "మొదలుపెట్టండి / Start"),
-        BotCommand("telugu",  "తెలుగులో మాట్లాడండి"),
-        BotCommand("english", "Switch to English"),
-        BotCommand("help",    "సహాయం / Help"),
+
+async def error_handler(update, context):
+    """Handle errors gracefully — suppress network blips, log real errors."""
+    import telegram
+    if isinstance(context.error, telegram.error.NetworkError):
+        logger.warning(f"Network blip (auto-recovering): {context.error}")
+    else:
+        logger.error(f"Unhandled error: {context.error}", exc_info=context.error)
+
+
+async def post_init(application):
+    await application.bot.set_my_commands([
+        BotCommand("start",      "మొదలుపెట్టండి / Start"),
+        BotCommand("telugu",     "తెలుగులో మాట్లాడండి"),
+        BotCommand("english",    "Switch to English"),
+        BotCommand("fertilizer", "💊 ఎరువు / మందు సలహా"),
+        BotCommand("mandu",      "💊 మందు వివరాలు"),
+        BotCommand("schemes",    "🏛️ ప్రభుత్వ పథకాలు"),
+        BotCommand("pathakalu",  "🏛️ పథకాల సమాచారం"),
+        BotCommand("calendar",  "📅 పంట క్యాలెండర్"),
+        BotCommand("panchanga", "📅 నెల వారీ షెడ్యూల్"),
+        BotCommand("alerts", "🚨 వ్యాధి వ్యాప్తి నివేదిక"),
+        BotCommand("price",  "💰 మండి ధరలు"),
+        BotCommand("dhara",  "💰 పంట ధర చూడండి"),
+        BotCommand("profile", "👨‍🌾 రైతు ప్రొఫైల్ / Farmer profile"),
+        BotCommand("subscribe", "🔔 ప్రాంతీయ హెచ్చరిక సబ్‌స్క్రిప్షన్"),
+        BotCommand("checklist", "🗓️ వారపు వ్యవసాయ కార్యాచరణ"),
+        BotCommand("help",       "సహాయం / Help"),
     ])
     logger.info("Bot commands set successfully.")
+
+    async def community_alert_job(context):
+        await send_community_alerts(context.bot)
+
+    # Run outbreak alerts every 6 hours using PTB's event-loop-aware job queue.
+    application.job_queue.run_repeating(
+        community_alert_job,
+        interval=6 * 60 * 60,
+        first=30,
+        name="community_alerts",
+    )
+    logger.info("Community alert scheduler started (every 6 hours).")
+
 
 def main():
     if not TOKEN:
@@ -45,7 +82,7 @@ def main():
     print("   Bot: @rythumitra_bot")
     print("   Press Ctrl+C to stop.\n")
 
-    app = (
+    application = (
         ApplicationBuilder()
         .token(TOKEN)
         .post_init(post_init)
@@ -53,20 +90,39 @@ def main():
     )
 
     # Commands
-    app.add_handler(CommandHandler("start",   start))
-    app.add_handler(CommandHandler("telugu",  set_telugu))
-    app.add_handler(CommandHandler("english", set_english))
-    app.add_handler(CommandHandler("help",    help_command))
+    application.add_handler(CommandHandler("start",      start))
+    application.add_handler(CommandHandler("telugu",     set_telugu))
+    application.add_handler(CommandHandler("english",    set_english))
+    application.add_handler(CommandHandler("help",       help_command))
+    application.add_handler(CommandHandler("fertilizer", fertilizer_command))
+    application.add_handler(CommandHandler("mandu",      fertilizer_command))
+    application.add_handler(CommandHandler("schemes",    schemes_command))
+    application.add_handler(CommandHandler("pathakalu",  schemes_command))
+    application.add_handler(CommandHandler("calendar",  calendar_command))
+    application.add_handler(CommandHandler("panchanga", calendar_command))
+    application.add_handler(CommandHandler("alerts",  alerts_command))
+    application.add_handler(CommandHandler("price",   price_command))
+    application.add_handler(CommandHandler("dhara",   price_command))
+    application.add_handler(CommandHandler("profile", profile_command))
+    application.add_handler(CommandHandler("subscribe", subscribe_command))
+    application.add_handler(CommandHandler("checklist", checklist_command))
 
     # Messages
-    app.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
-    app.add_handler(MessageHandler(filters.LOCATION, location_handler))
-    app.add_handler(MessageHandler(
-        filters.TEXT & ~filters.COMMAND, text_handler
+    application.add_handler(MessageHandler(filters.PHOTO,    photo_handler))
+    application.add_handler(MessageHandler(filters.VOICE,    voice_handler))
+    application.add_handler(MessageHandler(filters.LOCATION, location_handler))
+    application.add_handler(MessageHandler(
+        filters.TEXT & ~filters.COMMAND,
+        route_text
     ))
+    application.add_handler(CallbackQueryHandler(feedback_callback, pattern=r"^fb:"))
+
+    # Error handler
+    application.add_error_handler(error_handler)
 
     print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
-    app.run_polling(drop_pending_updates=True)
+    application.run_polling(drop_pending_updates=True)
+
 
 if __name__ == "__main__":
     main()
