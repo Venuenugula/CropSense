@@ -45,13 +45,15 @@ CropSense solves all three with a simple Telegram message.
 
 | Feature | Description |
 |---|---|
-| 📸 **Instant disease detection** | Send a crop photo → get the disease name and confidence score in seconds |
+| 📸 **Instant disease detection** | Send a crop photo → get disease name, confidence, and top-3 predictions in seconds |
 | 🧠 **Edge AI model** | EfficientNet-B0 quantized to INT8 via ONNX Runtime — runs offline, no GPU needed |
-| 💊 **RAG treatment advisor** | LangChain + FAISS over ICAR and Agropedia knowledge base — specific pesticide names, dosage, prevention |
+| 💊 **RAG treatment advisor** | LangChain + FAISS over ICAR and Agropedia knowledge base with checksum-verified FAISS artifacts |
 | 🗣 **Telugu + English support** | Farmer-friendly response in their native language, zero jargon |
 | ⛅ **7-day spread risk forecast** | Rule-based risk scoring predicts spread risk from local weather (temperature, humidity, rainfall) |
 | 📱 **Zero install** | Works on any phone via Telegram — no app download, no registration |
 | 📊 **Analytics dashboard** | Real-time district-wise disease outbreak map for researchers and agriculture officers |
+| 🧭 **Low-confidence guidance** | If confidence is low, bot asks for a retake with clear photo tips (daylight, focus, single leaf) |
+| 🗄️ **Persistent session state** | Redis-backed user/session state (with in-memory fallback) for restart-safe conversations |
 
 ---
 
@@ -116,6 +118,8 @@ Farmer sends photo (Telegram)
 | **Bot Interface** | python-telegram-bot (async) | Zero-install farmer interface |
 | **Database** | PostgreSQL | Detection logging + analytics |
 | **Dashboard** | Streamlit + Plotly | District-wise outbreak visualization |
+| **State Store** | Redis (+ memory fallback) | Persistent conversation/session state |
+| **Observability** | Structured JSON logs | Request IDs, stage timings, timeout/fallback events |
 | **Deployment** | Render | Free cloud hosting |
 
 ---
@@ -152,7 +156,14 @@ CropSense/
 │   ├── scheme_advisor.py     ← government scheme guidance
 │   ├── crop_calendar.py      ← crop calendar guidance
 │   ├── mandi_prices.py       ← mandi price lookup
+│   ├── state_store.py        ← Redis-backed state management
+│   └── observability.py      ← request IDs + structured telemetry logs
 │   └── alert_manager.py      ← community outbreak alert messaging
+├── tests/
+│   ├── test_gemini.py        ← timeout/retry/fallback tests
+│   ├── test_pipeline_integration.py ← pipeline + DB-log integration tests
+│   ├── test_risk_model.py    ← weather risk scoring tests
+│   └── test_weather.py       ← district resolution tests
 ├── data/                     ← PlantVillage dataset (not committed)
 ├── .env                      ← API keys (never committed)
 ├── .gitignore
@@ -213,8 +224,16 @@ GEMINI_API_KEY=your_gemini_key
 OPENWEATHER_API_KEY=your_openweather_key
 DATABASE_URL=postgresql://user:pass@localhost:5432/cropsense
 GROQ_API_KEY=your_groq_key
+REDIS_URL=redis://localhost:6379/0
 # Optional (improves model download rate limits)
 HF_TOKEN=your_huggingface_token
+```
+
+### Test Commands
+
+```bash
+# Run all tests
+python -m pytest -q
 ```
 
 ---
@@ -254,6 +273,22 @@ Recent production hardening updates included in this codebase:
   - OpenWeather endpoints switched from HTTP to HTTPS.
 - **DB query reliability fix**
   - Time-window SQL queries now use robust interval parameterization.
+- **Safer FAISS loading (Milestone A)**
+  - Removed dangerous deserialization path.
+  - Added checksum-verified FAISS artifacts (`index.faiss`, `metadata.json`, `checksums.json`).
+- **Automated test foundation (Milestone A)**
+  - Added `pytest` suite for pipeline, weather/risk logic, and Gemini timeout/retry fallback behavior.
+- **Persistent state (Milestone B)**
+  - Replaced in-memory conversational stores with Redis-backed state (`REDIS_URL`) and safe memory fallback.
+  - Binary payloads (like uploaded image bytes) are safely encoded/decoded for Redis storage.
+- **Async external I/O hardening (Milestone B)**
+  - Offloaded blocking scheme/mandi/fertilizer/voice operations to background threads in async handlers.
+- **Observability instrumentation (Milestone C)**
+  - Added structured JSON logs with `request_id` and stage timings (`pipeline_ms`, `gemini_ms`).
+  - Added explicit events for `gemini_timeout`, `gemini_fallback`, and pipeline errors/success.
+- **User trust UX upgrades (Milestone C)**
+  - Added confidence-threshold behavior for uncertain predictions.
+  - Added top-3 confidence margin and photo-retake guidance in user responses.
 
 These updates significantly reduce event-loop blocking, startup/runtime failures, and user-facing hangs during external API slowdowns.
 
@@ -312,13 +347,17 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] PostgreSQL logging + Streamlit dashboard
 - [x] Community alert scheduler and district-level alerts
 - [x] Reliability hardening (timeouts, non-blocking pipeline paths)
+- [x] Safer FAISS loading with artifact checksum verification
+- [x] Automated pytest test foundation
+- [x] Redis-backed persistent session/conversation state
+- [x] Structured observability logs with request IDs and latency metrics
+- [x] Confidence-threshold UX with photo retake guidance
 
 ### Planned
-- [ ] Add automated test suite (unit + integration)
-- [ ] Harden FAISS loading path for safer deployment
-- [ ] Improve observability (structured logs, metrics, alerting)
 - [ ] Expand crop/disease coverage and local KB depth
 - [ ] Add WhatsApp/SMS channel support
+- [ ] Add metrics dashboard + alert thresholds (Prometheus/Grafana)
+- [ ] Add CI pipeline for tests and lint checks
 
 ---
 

@@ -17,6 +17,7 @@ from utils.mandi_prices import (
     fetch_mandi_prices, format_price_response, find_crop_name
 )
 from utils.state_store import create_state_store
+from utils.observability import new_request_id, log_event, Timer
 import re
 import io
 import asyncio
@@ -723,7 +724,16 @@ async def _run_and_reply(
     update, context, uid, state,
     lat, lon, lang, location_label=None
 ):
+    request_id = new_request_id()
+    timer = Timer()
     label          = location_label or f"{lat:.4f}°N, {lon:.4f}°E"
+    log_event(
+        "pipeline_started",
+        request_id=request_id,
+        user_id=uid,
+        location=label,
+        lang=lang,
+    )
     processing_msg = await update.message.reply_text(
         f"🔍 విశ్లేషిస్తున్నాం... ({label})\nAnalyzing your crop... please wait ⏳",
         reply_markup=ReplyKeyboardRemove()
@@ -746,6 +756,7 @@ async def _run_and_reply(
         risk         = result["weather_risk"]
         loc_name     = result["location_name"]
         whisper_lang = "te" if lang == "telugu" else "en"
+        uncertain    = result.get("uncertain", False)
 
         # Disease report text
         await send_long_message(update.message, html(response))
@@ -755,12 +766,28 @@ async def _run_and_reply(
         for i, p in enumerate(top3, 1):
             disease    = p['disease'].replace('___', ' — ').replace('_', ' ')
             conf_text += f"{i}. {disease} — {p['confidence']}%\n"
+        if len(top3) >= 2:
+            margin = round(top3[0]["confidence"] - top3[1]["confidence"], 2)
+            conf_text += f"\n🧪 <b>Confidence Margin:</b> {margin}%\n"
+        if uncertain:
+            conf_text += (
+                "\n⚠️ <b>Low confidence:</b> Please retake a clear leaf photo in daylight."
+                "\n📷 <b>Tips:</b> close-up, in-focus, single affected leaf, no blur."
+            )
         conf_text += (
             f"\n📍 <b>Location:</b> {loc_name}\n"
             f"⛅ <b>Spread Risk:</b> {risk['risk_level']} "
             f"(score: {risk['risk_score']})"
         )
         await update.message.reply_text(conf_text, parse_mode="HTML")
+        log_event(
+            "pipeline_replied",
+            request_id=request_id,
+            user_id=uid,
+            uncertain=uncertain,
+            top_confidence=top3[0]["confidence"] if top3 else 0,
+            pipeline_ms=timer.elapsed_ms(),
+        )
 
         # Disease report audio
         try:
@@ -793,6 +820,13 @@ async def _run_and_reply(
 
     except Exception as e:
         await processing_msg.delete()
+        log_event(
+            "pipeline_error",
+            request_id=request_id,
+            user_id=uid,
+            error=str(e),
+            pipeline_ms=timer.elapsed_ms(),
+        )
         await update.message.reply_text(
             f"❌ లోపం వచ్చింది / An error occurred.\n"
             f"దయచేసి మళ్ళీ ప్రయత్నించండి / Please try again.\n\n"

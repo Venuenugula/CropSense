@@ -2,6 +2,7 @@ from google import genai
 from dotenv import load_dotenv
 import os, time
 from concurrent.futures import ThreadPoolExecutor, TimeoutError as FuturesTimeoutError
+from utils.observability import Timer, log_event
 
 load_dotenv()
 
@@ -25,6 +26,7 @@ def call_gemini(
     retries: int = 3,
     timeout_seconds: int = REQUEST_TIMEOUT_SECONDS,
 ) -> str:
+    timer = Timer()
     global _client
     if _client is None:
         _client = genai.Client(api_key=get_api_key())
@@ -43,10 +45,23 @@ def call_gemini(
             text = (response.text or "").strip()
             if not text:
                 raise ValueError("Empty response from Gemini")
+            log_event(
+                "gemini_success",
+                model=MODEL,
+                retries_used=attempt,
+                gemini_ms=timer.elapsed_ms(),
+            )
             return text
         except FuturesTimeoutError:
             last_error = TimeoutError(
                 f"Gemini request timed out after {timeout_seconds}s"
+            )
+            log_event(
+                "gemini_timeout",
+                model=MODEL,
+                timeout_seconds=timeout_seconds,
+                retries_used=attempt,
+                gemini_ms=timer.elapsed_ms(),
             )
         except Exception as e:
             last_error = e
@@ -55,5 +70,10 @@ def call_gemini(
             else:
                 break
 
-    print(f"Gemini fallback triggered: {last_error}")
+    log_event(
+        "gemini_fallback",
+        model=MODEL,
+        error=str(last_error),
+        gemini_ms=timer.elapsed_ms(),
+    )
     return FALLBACK_RESPONSE

@@ -9,8 +9,11 @@ from utils.response_generator import (
     generate_healthy_response,
 )
 from db.models import log_detection, init_db
+from utils.observability import Timer, log_event
 from PIL import Image
 import io
+
+MIN_CONFIDENCE_PERCENT = 65.0
 
 # init DB on startup
 try:
@@ -25,6 +28,7 @@ def run_pipeline(
     lang: str = "telugu",
     user_id: int = 0,
 ) -> dict:
+    timer = Timer()
     # Step 1 — Disease detection
     image        = Image.open(io.BytesIO(image_bytes)).convert("RGB")
     predictions  = predict(image, top_k=3)
@@ -33,6 +37,7 @@ def run_pipeline(
     confidence   = top["confidence"]
     is_healthy   = "healthy" in disease_key.lower()
     crop_name    = disease_key.split("___")[0].replace("_", " ")
+    uncertain    = confidence < MIN_CONFIDENCE_PERCENT
 
     # Step 2 — Weather + spread risk
     forecast      = get_forecast(lat, lon)
@@ -40,7 +45,26 @@ def run_pipeline(
     location_name = get_location_name(lat, lon)
 
     # Step 3 — LLM response
-    if is_healthy:
+    if uncertain:
+        if lang == "telugu":
+            response = (
+                "⚠️ *చిత్రం స్పష్టంగా లేదు కాబట్టి ఖచ్చితంగా చెప్పలేకపోతున్నాం.*\n\n"
+                "దయచేసి మళ్లీ ఫోటో తీసి పంపండి:\n"
+                "1) పగటి వెలుతురులో తీసండి\n"
+                "2) ఆకు దగ్గరగా మరియు ఫోకస్‌లో ఉండాలి\n"
+                "3) ఒకే ఆకును స్పష్టంగా చూపండి\n"
+                "4) బ్లర్ కాకుండా చేతిని స్థిరంగా ఉంచండి"
+            )
+        else:
+            response = (
+                "⚠️ *The image is unclear, so confidence is low.*\n\n"
+                "Please retake and send a clearer photo:\n"
+                "1) Use daylight\n"
+                "2) Keep the leaf close and in focus\n"
+                "3) Capture one affected leaf clearly\n"
+                "4) Avoid blur by holding phone steady"
+            )
+    elif is_healthy:
         response = generate_healthy_response(crop_name, confidence, lang)
     else:
         response = generate_disease_response(
@@ -61,6 +85,15 @@ def run_pipeline(
         location_name=location_name,
         lang=lang,
     )
+    log_event(
+        "pipeline_completed",
+        user_id=user_id,
+        disease_key=disease_key,
+        confidence=confidence,
+        uncertain=uncertain,
+        risk_level=weather_risk.get("risk_level", "Unknown"),
+        pipeline_ms=timer.elapsed_ms(),
+    )
 
     return {
         "disease_key":     disease_key,
@@ -71,4 +104,5 @@ def run_pipeline(
         "location_name":   location_name,
         "response":        response,
         "lang":            lang,
+        "uncertain":       uncertain,
     }

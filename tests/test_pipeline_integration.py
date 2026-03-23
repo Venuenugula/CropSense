@@ -75,3 +75,30 @@ def test_run_pipeline_logs_detection(monkeypatch):
     assert captured["disease_key"] == "Tomato___Late_blight"
     assert captured["location_name"] == "Basar, Telangana"
     assert captured["risk_level"] == "High"
+
+
+def test_run_pipeline_marks_uncertain_for_low_confidence(monkeypatch):
+    pipeline = importlib.import_module("bot.pipeline")
+    monkeypatch.setattr(
+        pipeline,
+        "predict",
+        lambda image, top_k=3: [
+            {"disease": "Tomato___Late_blight", "confidence": 42.0},
+            {"disease": "Tomato___Early_blight", "confidence": 40.0},
+            {"disease": "Tomato___healthy", "confidence": 18.0},
+        ],
+    )
+    monkeypatch.setattr(pipeline, "get_forecast", lambda lat, lon: [{"date": "d", "avg_temp": 24, "avg_humidity": 88, "total_rain": 10, "description": "rain"}] * 7)
+    monkeypatch.setattr(pipeline, "get_location_name", lambda lat, lon: "Basar, Telangana")
+    monkeypatch.setattr(pipeline, "predict_spread_risk", lambda disease_key, forecast: {"risk_level": "Medium", "risk_score": 0.5})
+    monkeypatch.setattr(pipeline, "log_detection", lambda **kwargs: None)
+
+    result = pipeline.run_pipeline(
+        image_bytes=_sample_image_bytes(),
+        lat=18.95,
+        lon=79.13,
+        lang="english",
+        user_id=1,
+    )
+    assert result["uncertain"] is True
+    assert "low" in result["response"].lower()
