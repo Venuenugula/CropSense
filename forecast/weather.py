@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 API_KEY  = os.getenv("OPENWEATHER_API_KEY")
-BASE_URL = "http://api.openweathermap.org/data/2.5"
+BASE_URL = "https://api.openweathermap.org/data/2.5"
 
 # ─── Telangana district coordinates ─────────────────────────────────────────
 TELANGANA_DISTRICTS = {
@@ -143,7 +143,7 @@ def get_location_name(lat: float, lon: float) -> str:
     Reverse geocode GPS coordinates to a human-readable location name.
     Falls back to known Telangana locations, then to coordinate string.
     """
-    url    = "http://api.openweathermap.org/geo/1.0/reverse"
+    url    = "https://api.openweathermap.org/geo/1.0/reverse"
     params = {"lat": lat, "lon": lon, "limit": 1, "appid": API_KEY}
     try:
         resp = requests.get(url, params=params, timeout=10)

@@ -138,7 +138,7 @@ def get_disease_frequency(days: int = 30) -> list:
                     SELECT disease_key, crop, COUNT(*) as count
                     FROM detections
                     WHERE is_healthy = FALSE
-                      AND created_at >= NOW() - INTERVAL '%s days'
+                      AND created_at >= NOW() - (%s * INTERVAL '1 day')
                     GROUP BY disease_key, crop
                     ORDER BY count DESC
                     LIMIT 10
@@ -161,7 +161,7 @@ def get_daily_trend(days: int = 14) -> list:
                            COUNT(*) as total,
                            SUM(CASE WHEN is_healthy=FALSE THEN 1 ELSE 0 END) as diseases
                     FROM detections
-                    WHERE created_at >= NOW() - INTERVAL '%s days'
+                    WHERE created_at >= NOW() - (%s * INTERVAL '1 day')
                     GROUP BY DATE(created_at)
                     ORDER BY date
                 """, (days,))

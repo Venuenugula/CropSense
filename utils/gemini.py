@@ -1,4 +1,4 @@
-import google.generativeai as genai
+from google import genai
 from dotenv import load_dotenv
 import os, time
 
@@ -11,15 +11,17 @@ def get_api_key():
     except Exception:
         return os.getenv("GEMINI_API_KEY")
 
-genai.configure(api_key=get_api_key())
-
 MODEL = "gemini-2.5-flash"  # or latest supported
+_client = genai.Client(api_key=get_api_key())
 
 def call_gemini(prompt: str, retries: int = 3) -> str:
     for attempt in range(retries):
         try:
-            response = genai.GenerativeModel(MODEL).generate_content(prompt)
-            return response.text.strip()
+            response = _client.models.generate_content(
+                model=MODEL,
+                contents=prompt,
+            )
+            return (response.text or "").strip()
         except Exception as e:
             if "429" in str(e) and attempt < retries - 1:
                 time.sleep(30 * (attempt + 1))

@@ -1,8 +1,3 @@
-from email.mime import application
-from sched import scheduler
-
-from tqdm import asyncio
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from utils.alert_manager import send_community_alerts
 
 from telegram.ext import (
@@ -60,6 +55,18 @@ async def post_init(application):
     ])
     logger.info("Bot commands set successfully.")
 
+    async def community_alert_job(context):
+        await send_community_alerts(context.bot)
+
+    # Run outbreak alerts every 6 hours using PTB's event-loop-aware job queue.
+    application.job_queue.run_repeating(
+        community_alert_job,
+        interval=6 * 60 * 60,
+        first=30,
+        name="community_alerts",
+    )
+    logger.info("Community alert scheduler started (every 6 hours).")
+
 
 def main():
     if not TOKEN:
@@ -102,18 +109,6 @@ def main():
 
     # Error handler
     application.add_error_handler(error_handler)
-    # Scheduler — check for outbreaks every 6 hours
-    scheduler = AsyncIOScheduler()
-    scheduler.add_job(
-    lambda: asyncio.create_task(
-        send_community_alerts(application.bot)
-    ),
-    trigger="interval",
-    hours=6,
-    id="community_alerts"
-)
-    scheduler.start()
-    print("⏰ Community alert scheduler started (every 6 hours)\n")
 
     print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
     application.run_polling(drop_pending_updates=True)
