@@ -7,7 +7,7 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from telegram import BotCommand
+from telegram import BotCommand, Update
 from bot.handlers import (
     start, set_telugu, set_english, help_command,
     photo_handler, location_handler, voice_handler, text_handler,
@@ -29,6 +29,8 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 TOKEN = os.getenv("TELEGRAM_BOT_TOKEN")
+WEBHOOK_URL = os.getenv("WEBHOOK_URL", "").rstrip("/")
+PORT = int(os.getenv("PORT", "8000"))
 
 
 async def error_handler(update, context):
@@ -120,8 +122,19 @@ def main():
     # Error handler
     application.add_error_handler(error_handler)
 
-    print("✅ Rythu Mitra is running! Open Telegram and send /start to @rythumitra_bot\n")
-    application.run_polling(drop_pending_updates=True)
+    if WEBHOOK_URL:
+        print("✅ Rythu Mitra webhook mode enabled.\n")
+        application.run_webhook(
+            listen="0.0.0.0",
+            port=PORT,
+            url_path=TOKEN,
+            webhook_url=f"{WEBHOOK_URL}/{TOKEN}",
+            drop_pending_updates=True,
+            allowed_updates=Update.ALL_TYPES,
+        )
+    else:
+        print("✅ Rythu Mitra polling mode enabled.\n")
+        application.run_polling(drop_pending_updates=True)
 
 
 if __name__ == "__main__":
