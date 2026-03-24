@@ -78,11 +78,14 @@ def get_disease_info(disease_key: str) -> dict:
 def retrieve_treatment(disease_key: str, query: str = None) -> dict:
     """
     Primary: direct KB lookup by disease key.
-    Fallback: RAG similarity search if key not found.
-    Returns structured disease info dict.
+    Fallback: FAISS similarity search if key not found (less reliable — flag in _retrieval).
+
+    Returns a shallow copy of the KB row plus optional _retrieval meta (for prompts only).
     """
     if disease_key in KB:
-        return KB[disease_key]
+        row = dict(KB[disease_key])
+        row["_retrieval"] = {"via": "kb_direct", "key": disease_key}
+        return row
 
     # Fallback — similarity search
     q = query or disease_key.replace("___", " ").replace("_", " ")
@@ -94,7 +97,11 @@ def retrieve_treatment(disease_key: str, query: str = None) -> dict:
         if len(indices) and indices[0][0] >= 0:
             rec = _faiss_metadata[indices[0][0]]
             key = rec.get("disease_key")
-            return KB.get(key, {})
+            base = KB.get(key)
+            if base:
+                row = dict(base)
+                row["_retrieval"] = {"via": "similarity", "key": key, "query": q}
+                return row
     except Exception as e:
         # Keep direct-key retrieval resilient even if FAISS artifacts are absent.
         print(f"FAISS fallback unavailable: {e}")
@@ -104,6 +111,7 @@ def format_for_llm(disease_info: dict) -> str:
     """Format disease info as clean text for LLM prompt."""
     if not disease_info:
         return "No information found for this disease."
+    disease_info = {k: v for k, v in disease_info.items() if k != "_retrieval"}
     return f"""
 Disease: {disease_info.get('telugu_name', '')} ({disease_info.get('crop', '')})
 Crop: {disease_info.get('crop', '')}

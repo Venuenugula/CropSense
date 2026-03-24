@@ -1,7 +1,6 @@
 import sys, os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from model.inference import predict
-from rag.retriever import retrieve_treatment
 from forecast.weather import get_forecast, get_location_name
 from forecast.risk_model import predict_spread_risk
 from utils.response_generator import (
@@ -121,7 +120,7 @@ def run_pipeline(
         response = generate_healthy_response(crop_name, confidence, lang)
     else:
         response = generate_disease_response(
-            disease_key, confidence, weather_risk, lang
+            disease_key, confidence, weather_risk, lang, top_predictions=predictions
         )
 
     # Step 4 — Log to database

@@ -47,11 +47,12 @@ CropSense solves all three with a simple Telegram message.
 |---|---|
 | 📸 **Instant disease detection** | Send a crop photo → get disease name, confidence, and top-3 predictions in seconds |
 | 🧠 **Edge AI model** | EfficientNet-B0 quantized to INT8 via ONNX Runtime — runs offline, no GPU needed |
-| 💊 **RAG treatment advisor** | LangChain + FAISS over ICAR and Agropedia knowledge base with checksum-verified FAISS artifacts |
-| 🗣 **Telugu + English support** | Farmer-friendly response in their native language, zero jargon |
+| 💊 **RAG treatment advisor** | Curated JSON knowledge base (`rag/knowledge_base/diseases.json`) with checksum-verified FAISS for **fallback** similarity search when a disease key is missing |
+| 🛡 **Trust-oriented replies** | Each diagnosis starts with a **deterministic summary**: confidence tier, KB symptom “why”, time-to-act by severity, runner-up class, and explicit **human-validation** footer (KVK / agronomist, label checks). Gemini expands advice but must **not invent** products beyond the KB treatment list |
+| 🗣 **Telugu + English support** | Farmer-friendly responses; Telegram **`/` command menu** descriptions switch per chat after `/telugu` or `/english` (plus global `te` / `en` / bilingual defaults) |
 | ⛅ **7-day spread risk forecast** | Rule-based risk scoring predicts spread risk from local weather (temperature, humidity, rainfall) |
 | 📱 **Zero install** | Works on any phone via Telegram — no app download, no registration |
-| 📊 **Analytics dashboard** | Real-time district-wise disease outbreak map for researchers and agriculture officers |
+| 📊 **Analytics dashboard** | Streamlit dashboard: maps, trends, top diseases, official hotspot scatter, interventions, CSV export |
 | 🧭 **Low-confidence guidance** | If confidence is low, bot asks for a retake with clear photo tips (daylight, focus, single leaf) |
 | 🗄️ **Persistent session state** | Redis-backed user/session state (with in-memory fallback) for restart-safe conversations |
 
@@ -84,14 +85,15 @@ Farmer sends photo (Telegram)
          ├──► Edge AI Model (EfficientNet-B0 + ONNX INT8)
          │         └── Disease name + confidence score
          │
-         ├──► RAG Advisor (LangChain + FAISS + ICAR knowledge base)
-         │         └── Treatment steps + pesticide names + dosage
+         ├──► Knowledge retrieval (rag/retriever.py)
+         │         ├── Direct lookup by model disease key (primary)
+         │         └── FAISS similarity fallback (flagged in prompts when used)
          │
          ├──► Weather Forecaster (OpenWeatherMap + rule-based risk scoring)
          │         └── 7-day spread risk: Low / Medium / High
          │
          └──► Multilingual LLM (Gemini 2.5 Flash)
-                   └── Final response in Telugu or English
+                   └── Trust header (confidence, symptoms, urgency) + narrative + safety footer
                              │
                              ▼
                    Farmer receives reply (~10 seconds)
@@ -111,7 +113,7 @@ Farmer sends photo (Telegram)
 |---|---|---|
 | **CV Model** | EfficientNet-B0 (PyTorch) | Fine-tuned on PlantVillage-style crop disease classes |
 | **Edge Optimization** | ONNX Runtime + INT8 quantization | Offline inference, low latency, no GPU |
-| **RAG Pipeline** | LangChain + FAISS | Retrieve treatment info from crop disease knowledge base |
+| **RAG / KB** | JSON KB + FAISS (fallback) | Primary key lookup; similarity search only if key missing; checksum-verified index |
 | **Embeddings** | sentence-transformers `all-MiniLM-L6-v2` | Local, offline, zero API cost |
 | **LLM** | Gemini 2.5 Flash | Telugu/English response generation |
 | **Forecasting** | Rule-based model + OpenWeatherMap | 7-day disease spread risk prediction |
@@ -136,19 +138,21 @@ CropSense/
 ├── rag/
 │   ├── build_kb.py           ← build FAISS knowledge base from PDFs
 │   ├── retriever.py          ← query treatment info by disease name
-│   └── knowledge_base/       ← ICAR PDFs + Agropedia disease docs
+│   └── knowledge_base/       ← diseases.json (structured treatments; sources vary by row)
 ├── forecast/
 │   ├── weather.py            ← OpenWeatherMap 7-day forecast fetcher
 │   └── risk_model.py         ← rule-based spread risk scoring
 ├── bot/
-│   ├── bot.py                ← main Telegram bot entry point
-│   ├── handlers.py           ← photo, text, command handlers
-│   └── pipeline.py           ← orchestrates all modules end-to-end
+│   ├── bot.py                   ← main Telegram bot entry (commands, webhook/polling, jobs)
+│   ├── command_localization.py  ← Telugu / English BotCommand menus (per-chat + global registration)
+│   ├── handlers.py              ← photo, text, command handlers
+│   └── pipeline.py              ← detection + weather + logging; delegates LLM copy to response_generator
 ├── dashboard/
 │   └── app.py                ← Streamlit analytics dashboard
 ├── db/
 │   └── models.py             ← PostgreSQL schema + queries
 ├── utils/
+│   ├── response_generator.py ← trust header + Gemini disease/healthy copy + safety footers
 │   ├── language.py           ← Telugu/English system prompts
 │   ├── gemini.py             ← Gemini client with timeout + fallback
 │   ├── voice.py              ← speech-to-text + text-to-speech
@@ -293,6 +297,14 @@ Recent production hardening updates included in this codebase:
 - **User trust UX upgrades (Milestone C)**
   - Added confidence-threshold behavior for uncertain predictions.
   - Added top-3 confidence margin and photo-retake guidance in user responses.
+- **Diagnosis trust layer (product)**
+  - **`utils/response_generator.py`:** deterministic block before the LLM — disease + %, confidence tier, KB symptom rationale, severity-based “when to act”, optional 2nd-place class, stronger warning when retrieval used **FAISS similarity** instead of exact key match.
+  - **Prompt constraints:** no invented pesticide names; local agronomist / KVK verification; no guaranteed “safe crop” claims.
+  - **Fixed footers:** human validation, label/dose checks, region-aware safety copy (Telangana / India).
+- **Telegram command localization**
+  - **`bot/command_localization.py`:** after `/telugu`, `/english`, or the language keyboard, the **`/` menu** for that chat is updated via `BotCommandScopeChat`; startup registers `te`, `en`, and a bilingual default for other client languages.
+- **Help text**
+  - `/help` lists commands in the user’s selected language when `user_state` is set.
 
 These updates significantly reduce event-loop blocking, startup/runtime failures, and user-facing hangs during external API slowdowns.
 
@@ -305,9 +317,9 @@ These updates significantly reduce event-loop blocking, startup/runtime failures
 Send any of these to get started:
 ```
 /start          → Welcome message + language selection
-/telugu         → తెలుగు
-/english        → English
-/help           → How to use CropSense
+/telugu         → తెలుగు (+ `/` menu descriptions in Telugu for this chat)
+/english        → English (+ `/` menu in English for this chat)
+/help           → How to use CropSense (matches selected language when set)
 /profile        → Save farmer profile (district/crop/acres/irrigation)
 /subscribe      → Subscribe to district+crop outbreak alerts
 /checklist      → Weekly action checklist based on profile
@@ -340,6 +352,8 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 వెంటనే పిచికారీ చేయండి.
 ```
 
+*(Current bot replies prepend a structured **diagnosis summary** — confidence tier, typical KB signs, urgency, alternative class — and append a **human-check / safety** footer. Product names in narrative must match the knowledge base; always verify locally before spraying.)*
+
 ---
 
 ## 🗺 Current Status & Next Roadmap
@@ -362,6 +376,9 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] Feedback buttons and feedback logging for diagnosis usefulness
 - [x] Farmer profile, alert subscription, and weekly checklist bot flows
 - [x] Official hotspot dashboard, intervention workflow, and CSV exports
+- [x] Trust-oriented diagnosis formatting (deterministic summary + constrained LLM + safety footer)
+- [x] Localized Telegram command menus per language choice
+- [x] RAG metadata: direct KB hit vs similarity fallback surfaced in farmer-facing copy
 
 ### Local bot runtime (current mode)
 
@@ -373,7 +390,7 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - **Optional cloud starter:** `start_bot.sh` is retained for hosted/PaaS experiments, but local workflow should use `start_bot_local.sh`.
 
 ### Planned
-- [ ] Expand crop/disease coverage and local KB depth
+- [ ] Expand crop/disease coverage and **curate KB** (source citations, `last_reviewed`, region-specific product lists)
 - [ ] Add WhatsApp/SMS channel support
 - [ ] Add metrics dashboard + alert thresholds (Prometheus/Grafana)
 - [ ] Add CI pipeline for tests and lint checks

@@ -55,7 +55,7 @@ def test_run_pipeline_logs_detection(monkeypatch):
     monkeypatch.setattr(
         pipeline,
         "generate_disease_response",
-        lambda disease_key, confidence, weather_risk, lang: "mock response",
+        lambda disease_key, confidence, weather_risk, lang, top_predictions=None: "mock response",
     )
 
     captured = {}
