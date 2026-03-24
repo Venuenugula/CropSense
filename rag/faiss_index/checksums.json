@@ -1,0 +1,7 @@
+{
+  "algorithm": "sha256",
+  "files": {
+    "index.faiss": "ed9ebf9fba5d6bdb6171fad21e6fa765fdb8a50783fc3c7671728fb3c2514b17",
+    "metadata.json": "7416e4583f65fd309e86aa03e53e610046d437f2440e96322fc3328c060da13f"
+  }
+}

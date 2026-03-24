@@ -1,0 +1,178 @@
+{
+  "records": [
+    {
+      "disease_key": "Apple___Apple_scab",
+      "crop": "Apple",
+      "severity": "High",
+      "telugu_name": "యాపిల్ స్కాబ్"
+    },
+    {
+      "disease_key": "Apple___Black_rot",
+      "crop": "Apple",
+      "severity": "High",
+      "telugu_name": "యాపిల్ బ్లాక్ రాట్"
+    },
+    {
+      "disease_key": "Apple___Cedar_apple_rust",
+      "crop": "Apple",
+      "severity": "Medium",
+      "telugu_name": "యాపిల్ రస్ట్"
+    },
+    {
+      "disease_key": "Apple___healthy",
+      "crop": "Apple",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన యాపిల్"
+    },
+    {
+      "disease_key": "Corn_(maize)___Cercospora_leaf_spot Gray_leaf_spot",
+      "crop": "Corn / Maize",
+      "severity": "High",
+      "telugu_name": "మొక్కజొన్న గ్రే లీఫ్ స్పాట్"
+    },
+    {
+      "disease_key": "Corn_(maize)___Common_rust_",
+      "crop": "Corn / Maize",
+      "severity": "Medium",
+      "telugu_name": "మొక్కజొన్న తుప్పు వ్యాధి"
+    },
+    {
+      "disease_key": "Corn_(maize)___Northern_Leaf_Blight",
+      "crop": "Corn / Maize",
+      "severity": "High",
+      "telugu_name": "మొక్కజొన్న నార్తర్న్ లీఫ్ బ్లైట్"
+    },
+    {
+      "disease_key": "Corn_(maize)___healthy",
+      "crop": "Corn / Maize",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన మొక్కజొన్న"
+    },
+    {
+      "disease_key": "Grape___Black_rot",
+      "crop": "Grape",
+      "severity": "Very High",
+      "telugu_name": "ద్రాక్ష బ్లాక్ రాట్"
+    },
+    {
+      "disease_key": "Grape___Esca_(Black_Measles)",
+      "crop": "Grape",
+      "severity": "Very High",
+      "telugu_name": "ద్రాక్ష ఎస్కా వ్యాధి"
+    },
+    {
+      "disease_key": "Grape___Leaf_blight_(Isariopsis_Leaf_Spot)",
+      "crop": "Grape",
+      "severity": "Medium",
+      "telugu_name": "ద్రాక్ష ఆకు తెగులు"
+    },
+    {
+      "disease_key": "Grape___healthy",
+      "crop": "Grape",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన ద్రాక్ష"
+    },
+    {
+      "disease_key": "Peach___Bacterial_spot",
+      "crop": "Peach",
+      "severity": "High",
+      "telugu_name": "పీచ్ బ్యాక్టీరియల్ స్పాట్"
+    },
+    {
+      "disease_key": "Peach___healthy",
+      "crop": "Peach",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన పీచ్"
+    },
+    {
+      "disease_key": "Pepper,_bell___Bacterial_spot",
+      "crop": "Bell Pepper",
+      "severity": "High",
+      "telugu_name": "మిరపకాయ బ్యాక్టీరియల్ స్పాట్"
+    },
+    {
+      "disease_key": "Pepper,_bell___healthy",
+      "crop": "Bell Pepper",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన మిరపకాయ"
+    },
+    {
+      "disease_key": "Potato___Early_blight",
+      "crop": "Potato",
+      "severity": "Medium",
+      "telugu_name": "బంగాళాదుంప అర్లీ బ్లైట్"
+    },
+    {
+      "disease_key": "Potato___Late_blight",
+      "crop": "Potato",
+      "severity": "Very High — Act immediately",
+      "telugu_name": "బంగాళాదుంప లేట్ బ్లైట్"
+    },
+    {
+      "disease_key": "Potato___healthy",
+      "crop": "Potato",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన బంగాళాదుంప"
+    },
+    {
+      "disease_key": "Tomato___Bacterial_spot",
+      "crop": "Tomato",
+      "severity": "High",
+      "telugu_name": "టమాటో బ్యాక్టీరియల్ స్పాట్"
+    },
+    {
+      "disease_key": "Tomato___Early_blight",
+      "crop": "Tomato",
+      "severity": "Medium",
+      "telugu_name": "టమాటో అర్లీ బ్లైట్"
+    },
+    {
+      "disease_key": "Tomato___Late_blight",
+      "crop": "Tomato",
+      "severity": "Very High — Act immediately",
+      "telugu_name": "టమాటో లేట్ బ్లైట్"
+    },
+    {
+      "disease_key": "Tomato___Leaf_Mold",
+      "crop": "Tomato",
+      "severity": "Medium",
+      "telugu_name": "టమాటో లీఫ్ మోల్డ్"
+    },
+    {
+      "disease_key": "Tomato___Septoria_leaf_spot",
+      "crop": "Tomato",
+      "severity": "High",
+      "telugu_name": "టమాటో సెప్టోరియా లీఫ్ స్పాట్"
+    },
+    {
+      "disease_key": "Tomato___Spider_mites Two-spotted_spider_mite",
+      "crop": "Tomato",
+      "severity": "High",
+      "telugu_name": "టమాటో స్పైడర్ మైట్స్"
+    },
+    {
+      "disease_key": "Tomato___Target_Spot",
+      "crop": "Tomato",
+      "severity": "Medium",
+      "telugu_name": "టమాటో టార్గెట్ స్పాట్"
+    },
+    {
+      "disease_key": "Tomato___Tomato_mosaic_virus",
+      "crop": "Tomato",
+      "severity": "Very High — no cure",
+      "telugu_name": "టమాటో మొజాయిక్ వైరస్"
+    },
+    {
+      "disease_key": "Tomato___Tomato_Yellow_Leaf_Curl_Virus",
+      "crop": "Tomato",
+      "severity": "Very High — major problem in Telangana",
+      "telugu_name": "టమాటో పసుపు ఆకు మురి వైరస్"
+    },
+    {
+      "disease_key": "Tomato___healthy",
+      "crop": "Tomato",
+      "severity": "None",
+      "telugu_name": "ఆరోగ్యకరమైన టమాటో"
+    }
+  ]
+}

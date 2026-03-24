@@ -367,8 +367,8 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 
 - **Hugging Face model (ONNX):** [VenuEnugula/cropsense_diseasedetection](https://huggingface.co/VenuEnugula/cropsense_diseasedetection)
 - **Start command:** `bash start_bot.sh` — downloads `crop_disease.onnx` and `class_names.json` from that repo (unless already present), optionally pulls `rag/faiss_index/*` from the same repo if you upload them there, then runs `python3 scripts/validate_faiss.py` and starts `python3 -m bot.bot`.
-- **FAISS:** Either commit `rag/faiss_index/` (`index.faiss`, `metadata.json`, `checksums.json`) or upload those files under `rag/faiss_index/` on Hugging Face. Set `DOWNLOAD_FAISS_FROM_HF=0` if artifacts are only in git. Build locally with `python rag/build_kb.py` if needed.
-- **Env:** `TELEGRAM_BOT_TOKEN`, `WEBHOOK_URL` (e.g. `https://your-service.onrender.com`), `PORT` (Render sets this), plus `DATABASE_URL`, `REDIS_URL`, and API keys as in your `.env`. Use `HF_TOKEN` if the HF repo is private.
+- **FAISS:** Commit `rag/faiss_index/index.faiss`, `metadata.json`, and `checksums.json` (rebuild with `python rag/build_kb.py` if needed). On Render set **`DOWNLOAD_FAISS_FROM_HF=0`** so startup uses the repo copy and does not try to pull FAISS from Hugging Face. Alternatively upload those three files to HF and leave download enabled.
+- **Env:** `TELEGRAM_BOT_TOKEN`, `WEBHOOK_URL` (e.g. `https://your-service.onrender.com`), `PORT` (Render sets this), `DOWNLOAD_FAISS_FROM_HF=0` when FAISS is in git, plus `DATABASE_URL`, `REDIS_URL`, and API keys as in your `.env`. Use `HF_TOKEN` if the HF repo is private.
 
 ### Planned
 - [ ] Expand crop/disease coverage and local KB depth
