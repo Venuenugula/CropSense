@@ -32,6 +32,7 @@ from utils.mandi_prices import (
 )
 from utils.state_store import create_state_store
 from utils.observability import new_request_id, log_event, Timer
+from bot.command_localization import apply_menu_for_language
 import re
 import io
 import asyncio
@@ -116,7 +117,9 @@ async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def set_telugu(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
+    cid = update.effective_chat.id
     user_state[uid] = {"lang": "telugu"}
+    await apply_menu_for_language(context.bot, cid, "telugu")
     await update.message.reply_text(
         "✅ తెలుగు భాష ఎంచుకున్నారు!\n\n"
         "📸 ఇప్పుడు మీ పంట ఆకు ఫోటో పంపండి.",
@@ -125,7 +128,9 @@ async def set_telugu(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
 async def set_english(update: Update, context: ContextTypes.DEFAULT_TYPE):
     uid = update.effective_user.id
+    cid = update.effective_chat.id
     user_state[uid] = {"lang": "english"}
+    await apply_menu_for_language(context.bot, cid, "english")
     await update.message.reply_text(
         "✅ English selected!\n\n"
         "📸 Now send a clear photo of your crop leaf.",
@@ -133,21 +138,53 @@ async def set_english(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    await update.message.reply_text(
-        "🌱 *రైతు మిత్ర సహాయం / Help*\n\n"
-        "Commands:\n"
-        "/start — మొదలుపెట్టండి\n"
-        "/telugu — తెలుగులో మాట్లాడండి\n"
-        "/english — Switch to English\n"
-        "/fertilizer — 💊 ఎరువు / మందు సలహా\n"
-        "/schemes — 🏛️ ప్రభుత్వ పథకాలు\n"
-        "/profile — 👨‍🌾 రైతు వివరాలు సేవ్ చేయండి\n"
-        "/subscribe — 🔔 మీ జిల్లాకు అలర్ట్ పొందండి\n"
-        "/checklist — 🗓️ ఈ వారం వ్యవసాయ కార్యాచరణ\n"
-        "/help — సహాయం\n\n"
-        "📞 సమస్య వస్తే: @Venuenugula",
-        parse_mode="Markdown"
-    )
+    uid = update.effective_user.id
+    lang = user_state.get(uid, {}).get("lang", "telugu")
+    if lang == "english":
+        text = (
+            "🌱 *Rythu Mitra — Help*\n\n"
+            "Commands:\n"
+            "/start — Start\n"
+            "/telugu — Switch to Telugu\n"
+            "/english — Switch to English\n"
+            "/fertilizer — Fertilizer & pesticide advice\n"
+            "/mandu — Pesticide details\n"
+            "/schemes — Government schemes\n"
+            "/pathakalu — Scheme information\n"
+            "/calendar — Crop calendar\n"
+            "/panchanga — Monthly schedule\n"
+            "/alerts — Disease spread alerts\n"
+            "/price — Mandi prices\n"
+            "/dhara — Crop prices\n"
+            "/profile — Farmer profile\n"
+            "/subscribe — District alerts\n"
+            "/checklist — Weekly farm checklist\n"
+            "/help — This message\n\n"
+            "📞 Issues: @Venuenugula"
+        )
+    else:
+        text = (
+            "🌱 *రైతు మిత్ర — సహాయం*\n\n"
+            "ఆదేశాలు:\n"
+            "/start — మొదలుపెట్టండి\n"
+            "/telugu — తెలుగులో మాట్లాడండి\n"
+            "/english — ఆంగ్లంలోకి మారండి\n"
+            "/fertilizer — 💊 ఎరువు / మందు సలహా\n"
+            "/mandu — 💊 మందు వివరాలు\n"
+            "/schemes — 🏛️ ప్రభుత్వ పథకాలు\n"
+            "/pathakalu — 🏛️ పథకాల సమాచారం\n"
+            "/calendar — 📅 పంట క్యాలెండర్\n"
+            "/panchanga — 📅 నెల వారీ షెడ్యూల్\n"
+            "/alerts — 🚨 వ్యాధి వ్యాప్తి నివేదిక\n"
+            "/price — 💰 మండి ధరలు\n"
+            "/dhara — 💰 పంట ధర\n"
+            "/profile — 👨‍🌾 రైతు ప్రొఫైల్\n"
+            "/subscribe — 🔔 ప్రాంతీయ హెచ్చరికలు\n"
+            "/checklist — 🗓️ వారపు వ్యవసాయ కార్యాచరణ\n"
+            "/help — ఈ సమాచారం\n\n"
+            "📞 సమస్య: @Venuenugula"
+        )
+    await update.message.reply_text(text, parse_mode="Markdown")
 
 
 async def profile_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -651,6 +688,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Language selection buttons
     if "తెలుగు" in text:
         user_state.setdefault(uid, {})["lang"] = "telugu"
+        await apply_menu_for_language(context.bot, update.effective_chat.id, "telugu")
         await update.message.reply_text(
             "✅ తెలుగు ఎంచుకున్నారు!\n📸 పంట ఫోటో పంపండి.",
             reply_markup=ReplyKeyboardRemove()
@@ -659,6 +697,7 @@ async def text_handler(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     if "English" in text:
         user_state.setdefault(uid, {})["lang"] = "english"
+        await apply_menu_for_language(context.bot, update.effective_chat.id, "english")
         await update.message.reply_text(
             "✅ English selected!\n📸 Send a photo of your crop.",
             reply_markup=ReplyKeyboardRemove()

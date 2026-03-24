@@ -7,7 +7,12 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from telegram import BotCommand, Update
+from telegram import Update
+from bot.command_localization import (
+    commands_telugu,
+    commands_english,
+    commands_default_mixed,
+)
 from bot.handlers import (
     start, set_telugu, set_english, help_command,
     photo_handler, location_handler, voice_handler, text_handler,
@@ -43,25 +48,11 @@ async def error_handler(update, context):
 
 
 async def post_init(application):
-    await application.bot.set_my_commands([
-        BotCommand("start",      "మొదలుపెట్టండి / Start"),
-        BotCommand("telugu",     "తెలుగులో మాట్లాడండి"),
-        BotCommand("english",    "Switch to English"),
-        BotCommand("fertilizer", "💊 ఎరువు / మందు సలహా"),
-        BotCommand("mandu",      "💊 మందు వివరాలు"),
-        BotCommand("schemes",    "🏛️ ప్రభుత్వ పథకాలు"),
-        BotCommand("pathakalu",  "🏛️ పథకాల సమాచారం"),
-        BotCommand("calendar",  "📅 పంట క్యాలెండర్"),
-        BotCommand("panchanga", "📅 నెల వారీ షెడ్యూల్"),
-        BotCommand("alerts", "🚨 వ్యాధి వ్యాప్తి నివేదిక"),
-        BotCommand("price",  "💰 మండి ధరలు"),
-        BotCommand("dhara",  "💰 పంట ధర చూడండి"),
-        BotCommand("profile", "👨‍🌾 రైతు ప్రొఫైల్ / Farmer profile"),
-        BotCommand("subscribe", "🔔 ప్రాంతీయ హెచ్చరిక సబ్‌స్క్రిప్షన్"),
-        BotCommand("checklist", "🗓️ వారపు వ్యవసాయ కార్యాచరణ"),
-        BotCommand("help",       "సహాయం / Help"),
-    ])
-    logger.info("Bot commands set successfully.")
+    bot = application.bot
+    await bot.set_my_commands(commands_telugu(), language_code="te")
+    await bot.set_my_commands(commands_english(), language_code="en")
+    await bot.set_my_commands(commands_default_mixed())
+    logger.info("Bot commands registered (te / en / default). Per-chat menu updates on language choice.")
 
     async def community_alert_job(context):
         await send_community_alerts(context.bot)
