@@ -89,8 +89,8 @@ Farmer sends photo (Telegram)
          │         ├── Direct lookup by model disease key (primary)
          │         └── FAISS similarity fallback (flagged in prompts when used)
          │
-         ├──► Weather Forecaster (OpenWeatherMap + rule-based risk scoring)
-         │         └── 7-day spread risk: Low / Medium / High
+         ├──► Weather Forecaster (OpenWeatherMap + hybrid risk: rules + optional XGBoost)
+         │         └── 7-day headline risk + disease-specific daily breakdown
          │
          └──► Multilingual LLM (Gemini 2.5 Flash)
                    └── Trust header (confidence, symptoms, urgency) + narrative + safety footer
@@ -116,7 +116,7 @@ Farmer sends photo (Telegram)
 | **RAG / KB** | JSON KB + FAISS (fallback) | Primary key lookup; similarity search only if key missing; checksum-verified index |
 | **Embeddings** | sentence-transformers `all-MiniLM-L6-v2` | Local, offline, zero API cost |
 | **LLM** | Gemini 2.5 Flash | Telugu/English response generation |
-| **Forecasting** | Rule-based model + OpenWeatherMap | 7-day disease spread risk prediction |
+| **Forecasting** | OpenWeatherMap + hybrid risk (disease-specific rules + optional XGBoost on Meteostat history) | 7-day spread headline; daily breakdown stays rule-based for explainability |
 | **Bot Interface** | python-telegram-bot (async) | Zero-install farmer interface |
 | **Database** | PostgreSQL | Detection logging + analytics |
 | **Dashboard** | Streamlit + Plotly | District-wise outbreak visualization |
@@ -141,7 +141,10 @@ CropSense/
 │   └── knowledge_base/       ← diseases.json (structured treatments; sources vary by row)
 ├── forecast/
 │   ├── weather.py            ← OpenWeatherMap 7-day forecast fetcher
-│   └── risk_model.py         ← rule-based spread risk scoring
+│   ├── risk_model.py         ← hybrid spread risk (rules + optional XGBoost)
+│   ├── risk_model_ml.py      ← ML inference + feature builder from forecast
+│   ├── build_dataset.py      ← Meteostat → ``weather_dataset.csv`` (training)
+│   └── train_model.py        ← train XGBoost → ``risk_model.pkl``
 ├── bot/
 │   ├── bot.py                   ← main Telegram bot entry (commands, webhook/polling, jobs)
 │   ├── command_localization.py  ← Telugu / English BotCommand menus (per-chat + global registration)
@@ -220,6 +223,18 @@ python rag/build_kb.py
 python -m bot.bot
 ```
 
+### ML weather risk model (optional)
+
+Builds `forecast/weather_dataset.csv` from [Meteostat](https://github.com/meteostat/meteostat) history and trains `forecast/risk_model.pkl`. At inference, if that file exists and `USE_ML_SPREAD_RISK` is not disabled, **headline** `risk_level` / `risk_score` use the ensemble; **per-day** breakdown in the response still uses the disease-specific rule layer so farmers see physics-based daily cues.
+
+```bash
+python forecast/build_dataset.py   # requires network; optional METEOSTAT_LAT / METEOSTAT_LON
+python forecast/train_model.py
+```
+
+- **Disable ML** (rule-only): `USE_ML_SPREAD_RISK=0` in the environment (tests force this for stable assertions).
+- **Generated data**: `forecast/weather_dataset.csv` is gitignored; you may commit `forecast/risk_model.pkl` for deployment without retraining.
+
 ### Environment Variables
 
 ```env
@@ -231,6 +246,8 @@ GROQ_API_KEY=your_groq_key
 REDIS_URL=redis://localhost:6379/0
 # Optional (improves model download rate limits)
 HF_TOKEN=your_huggingface_token
+# Optional: use rule-only spread risk (skip forecast/risk_model.pkl)
+# USE_ML_SPREAD_RISK=0
 ```
 
 ### Test Commands
@@ -317,9 +334,9 @@ These updates significantly reduce event-loop blocking, startup/runtime failures
 Send any of these to get started:
 ```
 /start          → Welcome message + language selection
-/telugu         → తెలుగు (+ `/` menu descriptions in Telugu for this chat)
-/english        → English (+ `/` menu in English for this chat)
-/help           → How to use CropSense (matches selected language when set)
+/telugu         → తెలుగు
+/english        → English
+/help           → How to use CropSense
 /profile        → Save farmer profile (district/crop/acres/irrigation)
 /subscribe      → Subscribe to district+crop outbreak alerts
 /checklist      → Weekly action checklist based on profile
@@ -372,6 +389,7 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] Automated pytest test foundation
 - [x] Redis-backed persistent session/conversation state
 - [x] Structured observability logs with request IDs and latency metrics
+- [x] Hybrid weather spread risk (rule-based daily detail + optional Meteostat-trained XGBoost headline)
 - [x] Confidence-threshold UX with photo retake guidance
 - [x] Feedback buttons and feedback logging for diagnosis usefulness
 - [x] Farmer profile, alert subscription, and weekly checklist bot flows

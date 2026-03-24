@@ -1,3 +1,8 @@
+import os
+
+# Deterministic tests: hybrid ML (if ``risk_model.pkl`` exists) can disagree with rules.
+os.environ["USE_ML_SPREAD_RISK"] = "0"
+
 from forecast.risk_model import predict_spread_risk
 
 

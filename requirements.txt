@@ -21,6 +21,10 @@ psycopg2-binary
 streamlit
 plotly
 requests
+pandas
+numpy
+joblib
+meteostat
 xgboost
 gTTS
 edge-tts

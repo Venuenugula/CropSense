@@ -17,3 +17,6 @@ model/crop_disease.onnx.data
 
 # LangChain FAISS save_local pickle (runtime uses index.faiss + metadata.json only)
 rag/faiss_index/index.pkl
+
+# Meteostat training dump (regenerate with forecast/build_dataset.py)
+forecast/weather_dataset.csv
