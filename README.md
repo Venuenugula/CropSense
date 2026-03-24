@@ -363,6 +363,13 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] Farmer profile, alert subscription, and weekly checklist bot flows
 - [x] Official hotspot dashboard, intervention workflow, and CSV exports
 
+### Render deployment (webhook)
+
+- **Hugging Face model (ONNX):** [VenuEnugula/cropsense_diseasedetection](https://huggingface.co/VenuEnugula/cropsense_diseasedetection)
+- **Start command:** `bash start_bot.sh` — downloads `crop_disease.onnx` and `class_names.json` from that repo (unless already present), optionally pulls `rag/faiss_index/*` from the same repo if you upload them there, then runs `python3 scripts/validate_faiss.py` and starts `python3 -m bot.bot`.
+- **FAISS:** Either commit `rag/faiss_index/` (`index.faiss`, `metadata.json`, `checksums.json`) or upload those files under `rag/faiss_index/` on Hugging Face. Set `DOWNLOAD_FAISS_FROM_HF=0` if artifacts are only in git. Build locally with `python rag/build_kb.py` if needed.
+- **Env:** `TELEGRAM_BOT_TOKEN`, `WEBHOOK_URL` (e.g. `https://your-service.onrender.com`), `PORT` (Render sets this), plus `DATABASE_URL`, `REDIS_URL`, and API keys as in your `.env`. Use `HF_TOKEN` if the HF repo is private.
+
 ### Planned
 - [ ] Expand crop/disease coverage and local KB depth
 - [ ] Add WhatsApp/SMS channel support
