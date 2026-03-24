@@ -363,12 +363,14 @@ CropSense: 🌾 పంట వ్యాధి గుర్తింపు (Crop D
 - [x] Farmer profile, alert subscription, and weekly checklist bot flows
 - [x] Official hotspot dashboard, intervention workflow, and CSV exports
 
-### Render deployment (webhook)
+### Local bot runtime (current mode)
 
-- **Hugging Face model (ONNX):** [VenuEnugula/cropsense_diseasedetection](https://huggingface.co/VenuEnugula/cropsense_diseasedetection)
-- **Start command:** `bash start_bot.sh` — downloads `crop_disease.onnx` and `class_names.json` from that repo (unless already present), optionally pulls `rag/faiss_index/*` from the same repo if you upload them there, then runs `python3 scripts/validate_faiss.py` and starts `python3 -m bot.bot`.
-- **FAISS:** Commit `rag/faiss_index/index.faiss`, `metadata.json`, and `checksums.json` (rebuild with `python rag/build_kb.py` if needed). On Render set **`DOWNLOAD_FAISS_FROM_HF=0`** so startup uses the repo copy and does not try to pull FAISS from Hugging Face. Alternatively upload those three files to HF and leave download enabled.
-- **Env:** `TELEGRAM_BOT_TOKEN`, `WEBHOOK_URL` (e.g. `https://your-service.onrender.com`), `PORT` (Render sets this), `DOWNLOAD_FAISS_FROM_HF=0` when FAISS is in git, plus `DATABASE_URL`, `REDIS_URL`, and API keys as in your `.env`. Use `HF_TOKEN` if the HF repo is private.
+- **Current mode:** bot is run locally for development/demo (polling mode).
+- **Run command:** `bash start_bot_local.sh`
+- **Required env:** `TELEGRAM_BOT_TOKEN` (in `.env` or exported shell variable).
+- **Model path:** keep `model/crop_disease.onnx` and `model/class_names.json` in your local repo. If your ONNX uses external tensors, keep `model/crop_disease.onnx.data` too.
+- **FAISS artifacts:** keep `rag/faiss_index/index.faiss`, `rag/faiss_index/metadata.json`, and `rag/faiss_index/checksums.json` locally (rebuild via `python rag/build_kb.py` if needed).
+- **Optional cloud starter:** `start_bot.sh` is retained for hosted/PaaS experiments, but local workflow should use `start_bot_local.sh`.
 
 ### Planned
 - [ ] Expand crop/disease coverage and local KB depth
