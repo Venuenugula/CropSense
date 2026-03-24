@@ -55,6 +55,7 @@ fi
 
 # --- ONNX model ---
 ONNX_DEST="model/crop_disease.onnx"
+ONNX_DATA_DEST="model/crop_disease.onnx.data"
 if [[ -n "${SKIP_MODEL_DOWNLOAD:-}" && -f "$ONNX_DEST" ]]; then
   echo "[start_bot] SKIP_MODEL_DOWNLOAD set and $ONNX_DEST exists — skipping ONNX download"
 elif [[ -n "${MODEL_URL:-}" ]]; then
@@ -66,6 +67,37 @@ else
     curl_get "${BASE}/crop_disease.onnx" "$ONNX_DEST" || { echo "[start_bot] ERROR: ONNX download failed"; exit 1; }
   else
     echo "[start_bot] $ONNX_DEST already present"
+  fi
+fi
+
+# Optional companion file for ONNX models saved with external data tensors.
+if [[ ! -f "$ONNX_DATA_DEST" ]]; then
+  echo "[start_bot] Trying ONNX external data: ${BASE}/crop_disease.onnx.data"
+  if curl_get "${BASE}/crop_disease.onnx.data" "$ONNX_DATA_DEST"; then
+    echo "[start_bot] Downloaded $ONNX_DATA_DEST"
+  else
+    rm -f "$ONNX_DATA_DEST" 2>/dev/null || true
+    echo "[start_bot] ONNX external data file not found on HF (continuing)"
+  fi
+fi
+
+# If ONNX references external tensors, the .onnx.data file is mandatory.
+if python3 - <<'PY'
+import sys
+try:
+    import onnx
+    m = onnx.load("model/crop_disease.onnx", load_external_data=False)
+    needs = any(getattr(t, "external_data", None) for t in m.graph.initializer)
+    sys.exit(0 if needs else 1)
+except Exception:
+    # If we cannot inspect, don't hard-fail here; runtime will validate.
+    sys.exit(1)
+PY
+then
+  if [[ ! -f "$ONNX_DATA_DEST" ]]; then
+    echo "[start_bot] ERROR: model/crop_disease.onnx requires external data file model/crop_disease.onnx.data"
+    echo "Upload crop_disease.onnx.data to https://huggingface.co/${HF_MODEL_REPO} (same path as ONNX), or commit it in model/"
+    exit 1
   fi
 fi
 
