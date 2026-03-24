@@ -44,6 +44,14 @@ curl_get() {
 mkdir -p model rag/faiss_index
 
 echo "[start_bot] Repo root: $ROOT"
+echo "[start_bot] Env check: PORT=${PORT:-unset}, WEBHOOK_URL=${WEBHOOK_URL:-unset}, TOKEN_SET=$([[ -n "${TELEGRAM_BOT_TOKEN:-}" ]] && echo yes || echo no)"
+
+# Render Web Services must bind to a port; without WEBHOOK_URL the bot falls back to polling.
+if [[ -n "${RENDER:-}" && -z "${WEBHOOK_URL:-}" ]]; then
+  echo "[start_bot] ERROR: WEBHOOK_URL is required on Render Web Service."
+  echo "Set WEBHOOK_URL to https://<your-service>.onrender.com (no trailing slash)."
+  exit 1
+fi
 
 # --- ONNX model ---
 ONNX_DEST="model/crop_disease.onnx"
@@ -90,7 +98,7 @@ if [[ "$DOWNLOAD_FAISS_FROM_HF" == "1" ]]; then
 fi
 
 echo "[start_bot] Validating FAISS artifacts..."
-if ! python3 scripts/validate_faiss.py; then
+if ! python3 -u scripts/validate_faiss.py; then
   echo "[start_bot] ERROR: FAISS validation failed."
   echo "  Fix: upload rag/faiss_index/{index.faiss,metadata.json,checksums.json} to"
   echo "       https://huggingface.co/${HF_MODEL_REPO} under rag/faiss_index/"
