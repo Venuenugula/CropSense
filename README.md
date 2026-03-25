@@ -331,6 +331,8 @@ These updates significantly reduce event-loop blocking, startup/runtime failures
 
 > Coming soon — link will be added after deployment
 
+> Watch How it works - [drive](https://drive.google.com/file/d/1DU6B1Q0Kbp0Tw_65fmoaSFU2QIAoSMjl/view?usp=sharing)
+
 Send any of these to get started:
 ```
 /start          → Welcome message + language selection
