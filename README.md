@@ -2,7 +2,7 @@
 
 # 🌱 CropSense
 
-### AI-Powered Crop Disease Detection for Farmers
+### AI-powered decision support system for farmers
 
 [![Python](https://img.shields.io/badge/Python-3.10+-blue?style=for-the-badge&logo=python&logoColor=white)](https://python.org)
 [![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=for-the-badge&logo=pytorch&logoColor=white)](https://pytorch.org)
@@ -425,8 +425,6 @@ git push origin feature/your-feature-name
 # Open a Pull Request to develop branch
 ```
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for branch naming conventions.
-
 ---
 
 ## 📄 License
@@ -437,7 +435,7 @@ MIT License — see [LICENSE](LICENSE) for details.
 
 <div align="center">
 
-### Built with ❤️ for farmers of Telangana by Venu Enugula
+### Built with ❤️ for farmers of Telangana by The Pioneers
 
 [![LinkedIn](https://img.shields.io/badge/LinkedIn-0A66C2?style=for-the-badge&logo=linkedin&logoColor=white)](https://linkedin.com/in/venu-enugula-mlengineer)
 [![GitHub](https://img.shields.io/badge/GitHub-181717?style=for-the-badge&logo=github&logoColor=white)](https://github.com/Venuenugula)
